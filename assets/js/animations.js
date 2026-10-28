@@ -1,84 +1,28 @@
 (function initConfirmaeAnimations() {
-  const prefersReducedMotion = window.matchMedia(
-    "(prefers-reduced-motion: reduce)"
-  ).matches;
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  function setupHeroVideo() {
-    const hero = document.querySelector(".hero-section");
-
-    if (!hero || prefersReducedMotion) {
-      return;
-    }
-
-    const videoLayer = document.createElement("div");
-    videoLayer.className = "hero-video-layer";
-    videoLayer.setAttribute("aria-hidden", "true");
-
-    const video = document.createElement("video");
-    video.className = "hero-background-video";
-
-    video.autoplay = true;
-    video.muted = true;
-    video.loop = true;
-    video.playsInline = true;
-    video.preload = "metadata";
-
-    video.setAttribute("muted", "");
-    video.setAttribute("autoplay", "");
-    video.setAttribute("loop", "");
-    video.setAttribute("playsinline", "");
-
-    const source = document.createElement("source");
-
-    // Coloque o arquivo de vídeo em assets/hero-eventos.mp4.
-    source.src = "assets/hero-eventos.mp4";
-    source.type = "video/mp4";
-
-    video.appendChild(source);
-    videoLayer.appendChild(video);
-    hero.prepend(videoLayer);
-
-    video.addEventListener("error", () => {
-      videoLayer.classList.add("video-unavailable");
-      video.remove();
+  if (prefersReducedMotion) {
+    document.querySelectorAll(".reveal-up").forEach((element) => {
+      element.classList.add("is-visible");
     });
-
-    const playPromise = video.play();
-
-    if (playPromise && typeof playPromise.catch === "function") {
-      playPromise.catch(() => {
-        videoLayer.classList.add("video-paused");
-      });
-    }
+    return;
   }
 
-  function setupRevealAnimations() {
-    const revealElements = document.querySelectorAll(".reveal-up");
+  /* =========================================================
+     1) REVEAL-UP
+     Elementos com .reveal-up aparecem suavemente ao entrar
+     na viewport (já existia — mantido igual).
+     ========================================================= */
+  const revealElements = document.querySelectorAll(".reveal-up");
 
-    if (!revealElements.length) {
-      return;
-    }
-
-    if (
-      prefersReducedMotion ||
-      typeof IntersectionObserver === "undefined"
-    ) {
-      revealElements.forEach((element) => {
-        element.classList.add("is-visible");
-      });
-
-      return;
-    }
-
-    const observer = new IntersectionObserver(
+  if (revealElements.length) {
+    const revealObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (!entry.isIntersecting) {
-            return;
-          }
+          if (!entry.isIntersecting) return;
 
           entry.target.classList.add("is-visible");
-          observer.unobserve(entry.target);
+          revealObserver.unobserve(entry.target);
         });
       },
       {
@@ -88,15 +32,66 @@
     );
 
     revealElements.forEach((element, index) => {
-      element.style.setProperty(
-        "--reveal-delay",
-        `${Math.min(index * 35, 220)}ms`
-      );
-
-      observer.observe(element);
+      element.style.setProperty("--reveal-delay", `${Math.min(index * 35, 220)}ms`);
+      revealObserver.observe(element);
     });
   }
 
-  setupHeroVideo();
-  setupRevealAnimations();
+  /* =========================================================
+     2) COUNT-UP
+     Números do hero da home (.hero-mini-stats strong)
+     animam de 0 até o valor real quando ficam visíveis.
+     ========================================================= */
+  const countUpElements = document.querySelectorAll(".hero-mini-stats strong");
+
+  if (!countUpElements.length) {
+    return;
+  }
+
+  const countUpObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+
+        const element = entry.target;
+        const finalText = element.textContent.trim();
+        const target = parseInt(finalText, 10);
+
+        countUpObserver.unobserve(element);
+
+        // Se não for número ou for 0, não anima
+        if (Number.isNaN(target) || target === 0) {
+          return;
+        }
+
+        element.textContent = "0";
+
+        const duration = 950;
+        const startTime = performance.now();
+
+        function step(timestamp) {
+          const progress = Math.min((timestamp - startTime) / duration, 1);
+
+          // easeOutCubic — a animação desacelera no final
+          const eased = 1 - Math.pow(1 - progress, 3);
+          const current = Math.floor(eased * target);
+
+          element.textContent = String(current);
+
+          if (progress < 1) {
+            requestAnimationFrame(step);
+          } else {
+            element.textContent = finalText;
+          }
+        }
+
+        requestAnimationFrame(step);
+      });
+    },
+    { threshold: 0.5 }
+  );
+
+  countUpElements.forEach((element) => {
+    countUpObserver.observe(element);
+  });
 })();
