@@ -2,10 +2,10 @@
 <html lang="pt-BR">
 <head>
   <link rel="manifest" href="manifest.webmanifest" />
-<meta name="theme-color" content="#0D1014" />
-<meta name="mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-title" content="Confirmaê" />
+  <meta name="theme-color" content="#0D1014" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Confirmaê" />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
@@ -18,7 +18,7 @@
 
   <link rel="icon" type="image/png" href="assets/img/confirmae-icon.png" />
   <link rel="apple-touch-icon" href="assets/img/confirmae-icon.png" />
-  <link rel="stylesheet" href="assets/css/style.css?v=footer-1" />
+  <link rel="stylesheet" href="assets/css/style.css?v=pix-1" />
 </head>
 
 <body class="page-admin">
@@ -120,30 +120,11 @@
     </section>
 
     <section class="container stats-grid" data-event-workspace hidden aria-label="Resumo de status dos convidados">
-      <article class="stat-card">
-        <span>Total</span>
-        <strong id="totalGuests">0</strong>
-      </article>
-
-      <article class="stat-card">
-        <span>Aguardando</span>
-        <strong id="waitingGuests">0</strong>
-      </article>
-
-      <article class="stat-card">
-        <span>Aceitos</span>
-        <strong id="acceptedGuests">0</strong>
-      </article>
-
-      <article class="stat-card">
-        <span>Recusados</span>
-        <strong id="declinedGuests">0</strong>
-      </article>
-
-      <article class="stat-card">
-        <span>Presentes</span>
-        <strong id="presentGuests">0</strong>
-      </article>
+      <article class="stat-card"><span>Total</span><strong id="totalGuests">0</strong></article>
+      <article class="stat-card"><span>Aguardando</span><strong id="waitingGuests">0</strong></article>
+      <article class="stat-card"><span>Aceitos</span><strong id="acceptedGuests">0</strong></article>
+      <article class="stat-card"><span>Recusados</span><strong id="declinedGuests">0</strong></article>
+      <article class="stat-card"><span>Presentes</span><strong id="presentGuests">0</strong></article>
     </section>
 
     <section class="container" data-event-workspace hidden>
@@ -160,42 +141,34 @@
             <label for="eventNameInput">Nome do evento</label>
             <input type="text" id="eventNameInput" placeholder="Ex: Casamento João & Maria" required />
           </div>
-
           <div class="form-group">
             <label for="eventTypeInput">Tipo do evento</label>
             <input type="text" id="eventTypeInput" placeholder="Ex: Casamento, Aniversário, Festa, Formatura" required />
           </div>
-
           <div class="form-group">
             <label for="eventHostInput">Nome do anfitrião</label>
             <input type="text" id="eventHostInput" placeholder="Ex: João & Maria" />
           </div>
-
           <div class="form-group">
             <label for="eventDateIsoInput">Data oficial do evento</label>
             <input type="date" id="eventDateIsoInput" />
           </div>
-
           <div class="form-group">
             <label for="eventDateInput">Data exibida no convite</label>
             <input type="text" id="eventDateInput" placeholder="Ex: 20 de dezembro de 2026" required />
           </div>
-
           <div class="form-group">
             <label for="eventTimeInput">Horário</label>
             <input type="text" id="eventTimeInput" placeholder="Ex: 19h30" required />
           </div>
-
           <div class="form-group">
             <label for="eventLocationInput">Local</label>
             <input type="text" id="eventLocationInput" placeholder="Ex: Espaço Jardim Imperial" required />
           </div>
-
           <div class="form-group">
             <label for="eventIntroInput">Mensagem do convite</label>
             <input type="text" id="eventIntroInput" placeholder="Ex: Você está recebendo este convite especial..." required />
           </div>
-
           <button type="submit" class="btn btn-primary">
             Salvar dados do evento
           </button>
@@ -217,22 +190,18 @@
             <label for="guestNameInput">Nome do convidado</label>
             <input type="text" id="guestNameInput" placeholder="Ex: Maria Oliveira" required />
           </div>
-
           <div class="form-group">
             <label for="guestPhoneInput">Telefone</label>
             <input type="tel" id="guestPhoneInput" placeholder="Ex: (11) 99999-9999" />
           </div>
-
           <div class="form-group">
             <label for="guestEmailInput">E-mail</label>
             <input type="email" id="guestEmailInput" placeholder="Ex: maria@email.com" />
           </div>
-
           <div class="form-group">
             <label for="guestCompanionsInput">Acompanhantes permitidos</label>
             <input type="number" id="guestCompanionsInput" min="0" value="0" />
           </div>
-
           <button type="submit" class="btn btn-primary">
             Criar convite
           </button>
@@ -247,25 +216,11 @@
           </div>
 
           <div class="table-actions">
-            <button type="button" class="btn btn-secondary btn-small" id="exportAllGuestsButton">
-              Exportar todos
-            </button>
-
-            <button type="button" class="btn btn-secondary btn-small" id="exportAcceptedGuestsButton">
-              Exportar confirmados
-            </button>
-
-            <button type="button" class="btn btn-secondary btn-small" id="exportPresentGuestsButton">
-              Exportar presentes
-            </button>
-
-            <button type="button" class="btn btn-secondary btn-small" id="exportDeclinedGuestsButton">
-              Exportar recusados
-            </button>
-
-            <button type="button" class="btn btn-secondary btn-small" id="resetDemoButton">
-              Restaurar demo
-            </button>
+            <button type="button" class="btn btn-secondary btn-small" id="exportAllGuestsButton">Exportar todos</button>
+            <button type="button" class="btn btn-secondary btn-small" id="exportAcceptedGuestsButton">Exportar confirmados</button>
+            <button type="button" class="btn btn-secondary btn-small" id="exportPresentGuestsButton">Exportar presentes</button>
+            <button type="button" class="btn btn-secondary btn-small" id="exportDeclinedGuestsButton">Exportar recusados</button>
+            <button type="button" class="btn btn-secondary btn-small" id="resetDemoButton">Restaurar demo</button>
           </div>
         </div>
 
@@ -280,11 +235,8 @@
                 <th>Ações</th>
               </tr>
             </thead>
-
             <tbody id="guestTableBody">
-              <tr>
-                <td colspan="5">Aguardando acesso ao evento...</td>
-              </tr>
+              <tr><td colspan="5">Aguardando acesso ao evento...</td></tr>
             </tbody>
           </table>
         </div>
@@ -299,10 +251,7 @@
           <span class="eyebrow">Convite individual</span>
           <h2 id="qrModalTitle">QR Code do convidado</h2>
         </div>
-
-        <button type="button" class="modal-close" id="closeQrModal" aria-label="Fechar modal">
-          ×
-        </button>
+        <button type="button" class="modal-close" id="closeQrModal" aria-label="Fechar modal">×</button>
       </div>
 
       <div class="qr-modal-body">
@@ -317,44 +266,36 @@
         <div class="qr-code-box" id="qrCodeBox"></div>
 
         <div class="qr-actions">
-          <button type="button" class="btn btn-secondary" id="copyQrLinkButton">
-            Copiar link
-          </button>
-
-          <button type="button" class="btn btn-primary" id="downloadQrButton">
-            Baixar QR Code
-          </button>
+          <button type="button" class="btn btn-secondary" id="copyQrLinkButton">Copiar link</button>
+          <button type="button" class="btn btn-primary" id="downloadQrButton">Baixar QR Code</button>
         </div>
       </div>
     </div>
   </div>
 
   <footer class="site-footer">
-  <div class="container footer-content footer-content-branded">
-    <div class="footer-brand-note">
-      <p>© 2026 Confirmaê.</p>
-      <p>Confirmaê é um sistema desenvolvido por Vidal Design Solutions.</p>
+    <div class="container footer-content footer-content-branded">
+      <div class="footer-brand-note">
+        <p>© 2026 Confirmaê.</p>
+        <p>Confirmaê é um sistema desenvolvido por Vidal Design Solutions.</p>
+      </div>
+
+      <a
+        href="http://www.vidaldesignsolutions.com.br"
+        class="developer-badge"
+        target="_blank"
+        rel="noopener"
+        aria-label="Acessar site da Vidal Design Solutions"
+      >
+        <span>Desenvolvido por</span>
+        <img src="assets/img/vidal-design-logo.png" alt="Vidal Design Solutions" />
+      </a>
     </div>
+  </footer>
 
-    <a
-      href="http://www.vidaldesignsolutions.com.br"
-      class="developer-badge"
-      target="_blank"
-      rel="noopener"
-      aria-label="Acessar site da Vidal Design Solutions"
-    >
-      <span>Desenvolvido por</span>
-      <img
-        src="assets/img/vidal-design-logo.png"
-        alt="Vidal Design Solutions"
-      />
-    </a>
-  </div>
-</footer>
-
-  <script src="assets/js/theme.js?v=comercial-1"></script>
+  <script src="assets/js/theme.js?v=pix-1"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script type="module" src="assets/js/admin.js?v=csv-1"></script>
+  <script type="module" src="assets/js/admin.js?v=csv-2"></script>
   <script src="assets/js/pwa.js?v=pwa-1"></script>
 </body>
 </html>
