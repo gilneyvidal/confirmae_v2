@@ -14,12 +14,12 @@
 
   <meta
     name="description"
-    content="Painel do anfitrião para personalizar eventos, gerenciar convidados, links individuais, QR Codes e status de confirmação."
+    content="Gerencie convidados, confirmações, QR Codes e configurações do seu evento."
   />
 
   <link rel="icon" type="image/png" href="assets/img/confirmae-icon.png" />
   <link rel="apple-touch-icon" href="assets/img/confirmae-icon.png" />
-  <link rel="stylesheet" href="assets/css/style.css?v=pin-fix-3" />
+  <link rel="stylesheet" href="assets/css/style.css?v=pin-fix-4" />
 </head>
 
 <body class="page-admin">
@@ -33,8 +33,10 @@
       <nav class="main-nav" aria-label="Menu principal">
         <a href="index.html">Início</a>
         <a href="index.html#contratar">Criar evento</a>
-        <a href="convite.html?evento=evento-demo&convidado=convidado-demo">Convite</a>
+        <a href="admin.html">Painel do anfitrião</a>
         <a href="portaria.html">Portaria</a>
+        <a href="master.html">Master</a>
+        <a href="manual.html">Manual</a>
       </nav>
     </div>
   </header>
@@ -44,9 +46,10 @@
       <div>
         <span class="eyebrow">Painel do anfitrião</span>
         <h1>Acesse seu evento</h1>
+
         <p>
-          Informe o ID e o PIN do painel para personalizar, cadastrar convidados,
-          gerar QR Codes e acompanhar confirmações.
+          Informe o ID e o PIN do painel para personalizar seu evento,
+          cadastrar convidados e acompanhar confirmações.
         </p>
 
         <div class="hero-actions">
@@ -58,28 +61,34 @@
 
       <div class="event-selector-card">
         <label for="eventIdInput">ID do evento</label>
+
         <input
           type="text"
           id="eventIdInput"
           value="evento-demo"
-          aria-label="ID do evento"
           autocomplete="off"
+          aria-label="ID do evento"
         />
 
         <label for="eventPanelPinInput">PIN do painel</label>
+
         <input
           type="password"
           id="eventPanelPinInput"
           placeholder="Digite o PIN do painel"
-          aria-label="PIN do painel"
           autocomplete="current-password"
+          aria-label="PIN do painel"
         />
 
         <small id="panelPinHelpText" role="status" aria-live="polite">
-          O PIN é enviado pelo WhatsApp após a liberação do evento.
+          Digite o PIN recebido pelo WhatsApp para acessar seu evento.
         </small>
 
-        <button type="button" class="btn btn-secondary" id="loadEventButton">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          id="loadEventButton"
+        >
           Acessar evento
         </button>
       </div>
@@ -89,7 +98,7 @@
       <article class="panel-card">
         <div class="panel-heading">
           <div>
-            <span class="eyebrow">Evento bloqueado</span>
+            <span class="eyebrow">Evento ainda não liberado</span>
             <h2>Liberação necessária</h2>
           </div>
         </div>
@@ -97,8 +106,10 @@
         <div class="features-grid">
           <article class="feature-card">
             <div class="feature-icon">ID</div>
-            <h3 id="lockedEventIdText">evento</h3>
-            <p>Este ID ainda não foi liberado para uso no Confirmaê.</p>
+            <h3 id="lockedEventIdText">Evento</h3>
+            <p>
+              Guarde esse identificador. Ele será usado para acessar seu painel.
+            </p>
           </article>
 
           <article class="feature-card">
@@ -107,8 +118,10 @@
             <p>
               <strong>Banco:</strong>
               <span id="pixBankText">Mercado Pago</span><br />
+
               <strong>Chave:</strong>
               <span id="pixKeyText">11968649673</span><br />
+
               <strong>Nome:</strong>
               <span id="pixHolderText">Gilney Wesley Aparecido Vidal</span>
             </p>
@@ -116,9 +129,10 @@
 
           <article class="feature-card">
             <div class="feature-icon">WA</div>
-            <h3>Enviar comprovante</h3>
+            <h3>Confirmação de pagamento</h3>
             <p>
-              Após o pagamento, envie o comprovante pelo WhatsApp para liberação manual.
+              Após o pagamento, envie o comprovante pelo WhatsApp para conferência
+              e liberação manual.
             </p>
           </article>
         </div>
@@ -134,12 +148,16 @@
             Falar no WhatsApp
           </a>
 
-          <button type="button" class="btn btn-secondary" id="copyPixButton">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            id="copyPixButton"
+          >
             Copiar chave Pix
           </button>
 
           <a href="index.html#contratar" class="btn btn-secondary">
-            Ver explicação completa
+            Ver planos
           </a>
         </div>
       </article>
@@ -149,7 +167,7 @@
       class="container stats-grid"
       data-event-workspace
       hidden
-      aria-label="Resumo de status dos convidados"
+      aria-label="Resumo dos convidados"
     >
       <article class="stat-card">
         <span>Total</span>
@@ -162,7 +180,7 @@
       </article>
 
       <article class="stat-card">
-        <span>Aceitos</span>
+        <span>Confirmados</span>
         <strong id="acceptedGuests">0</strong>
       </article>
 
@@ -202,7 +220,7 @@
             <input
               type="text"
               id="eventTypeInput"
-              placeholder="Ex: Casamento, Aniversário, Festa, Formatura"
+              placeholder="Ex: Casamento, aniversário ou formatura"
               required
             />
           </div>
@@ -256,7 +274,7 @@
             <input
               type="text"
               id="eventIntroInput"
-              placeholder="Ex: Você está recebendo este convite especial..."
+              placeholder="Mensagem para os convidados"
               required
             />
           </div>
@@ -436,11 +454,19 @@
         <div class="qr-code-box" id="qrCodeBox"></div>
 
         <div class="qr-actions">
-          <button type="button" class="btn btn-secondary" id="copyQrLinkButton">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            id="copyQrLinkButton"
+          >
             Copiar link
           </button>
 
-          <button type="button" class="btn btn-primary" id="downloadQrButton">
+          <button
+            type="button"
+            class="btn btn-primary"
+            id="downloadQrButton"
+          >
             Baixar QR Code
           </button>
         </div>
@@ -471,7 +497,7 @@
     </div>
   </footer>
 
-  <script src="assets/js/theme.js?v=pin-fix-3"></script>
+  <script src="assets/js/theme.js?v=pin-fix-4"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <script>
@@ -512,7 +538,7 @@
 
         if (eventId !== "evento-demo" && !pin) {
           panelPinHelpText.textContent =
-            "Digite o PIN do painel enviado pelo WhatsApp e clique em Acessar evento.";
+            "Digite o PIN recebido pelo WhatsApp antes de continuar.";
 
           eventPanelPinInput.focus();
           return;
@@ -522,11 +548,6 @@
           return;
         }
 
-        /*
-         * O admin.js usa este valor da sessão para validar o PIN.
-         * Isso evita que o carregamento do módulo apague o PIN digitado
-         * antes da verificação.
-         */
         if (eventId !== "evento-demo" && pin) {
           sessionStorage.setItem(
             `confirmae_panel_pin_${eventId}`,
@@ -539,12 +560,12 @@
         panelPinHelpText.textContent = "Preparando a validação do painel...";
 
         try {
-          adminModulePromise = import("./assets/js/admin.js?v=pin-fix-3");
+          adminModulePromise = import("./assets/js/admin.js?v=pin-fix-4");
 
           await adminModulePromise;
           adminModuleLoaded = true;
 
-          // Recupera o campo depois da inicialização do módulo.
+          // Recupera o PIN para manter o campo preenchido.
           eventPanelPinInput.value = pin;
         } catch (error) {
           console.error("Falha ao carregar o painel:", error);
