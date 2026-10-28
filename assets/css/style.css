@@ -2977,6 +2977,42 @@ label {
     grid-column: 1 / -1;
   }
 }
+/* =========================================================
+   Confirmaê v1.3 · Cupons avançados (validade + limite)
+   (bloco aditivo — não remove nada existente)
+   ========================================================= */
+
+/* Linha de campos do cupom (validade e uso) */
+.form-row-coupon {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.form-row-coupon .form-group {
+  display: grid;
+  gap: 4px;
+}
+
+/* Botões de ação compactos na tabela de cupons */
+.coupons-table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+@media (max-width: 900px) {
+  .form-row-coupon {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .form-row-coupon {
+    grid-template-columns: 1fr;
+  }
+}
 
 @media (max-width: 700px) {
   .payment-summary-grid {
