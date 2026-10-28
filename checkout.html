@@ -14,12 +14,12 @@
 
   <meta
     name="description"
-    content="Escolha seu plano do Confirmaê, informe seus dados e envie a solicitação de liberação do evento pelo WhatsApp."
+    content="Escolha seu plano, pague via Pix e solicite a liberação do seu evento no Confirmaê."
   />
 
   <link rel="icon" type="image/png" href="assets/img/confirmae-icon.png" />
   <link rel="apple-touch-icon" href="assets/img/confirmae-icon.png" />
-  <link rel="stylesheet" href="assets/css/style.css?v=checkout-3" />
+  <link rel="stylesheet" href="assets/css/style.css?v=pix-1" />
 </head>
 
 <body class="page-admin">
@@ -43,15 +43,16 @@
     <section class="container dashboard-header">
       <div>
         <span class="eyebrow">Solicitação de liberação</span>
-        <h1>Escolha seu plano e envie seu pedido</h1>
+        <h1>Contrate seu plano e prepare seu evento</h1>
+
         <p>
-          Preencha os dados do evento e envie a solicitação pelo WhatsApp.
-          Após a confirmação, o acesso será liberado manualmente.
+          Selecione o plano, confira o valor, faça o Pix e envie sua solicitação
+          pelo WhatsApp com o comprovante para conferência.
         </p>
       </div>
 
       <div class="event-selector-card checkout-summary-card">
-        <span class="eyebrow">Resumo</span>
+        <span class="eyebrow">Seu pedido</span>
         <h2 id="checkoutPlanName">Confirmaê Essencial</h2>
 
         <div class="checkout-price">
@@ -62,10 +63,10 @@
         <p id="checkoutPlanLimit">Até 30 convidados</p>
 
         <div class="admin-help-box">
-          <strong>Pagamento e liberação</strong>
+          <strong>Como funciona a liberação?</strong>
           <p>
-            Depois de enviar a solicitação pelo WhatsApp, envie o comprovante do Pix
-            na conversa para conferência e liberação do evento.
+            O pagamento é conferido manualmente. Depois, você recebe pelo WhatsApp
+            o link do painel, o ID do evento, o PIN do painel e o PIN da portaria.
           </p>
         </div>
       </div>
@@ -75,14 +76,15 @@
       <article class="panel-card">
         <div class="panel-heading">
           <div>
-            <span class="eyebrow">Plano</span>
-            <h2>Selecione o plano</h2>
+            <span class="eyebrow">Escolha seu plano</span>
+            <h2>Qual é o tamanho do seu evento?</h2>
           </div>
         </div>
 
         <div class="checkout-plan-options" id="checkoutPlanOptions">
           <label class="checkout-plan-option">
             <input type="radio" name="plan" value="essential" checked />
+
             <span>
               <strong>Essencial</strong>
               <small>R$ 29,90 • até 30 convidados</small>
@@ -91,6 +93,7 @@
 
           <label class="checkout-plan-option checkout-plan-option-featured">
             <input type="radio" name="plan" value="pro" />
+
             <span>
               <strong>Pro</strong>
               <small>R$ 49,90 • até 60 convidados</small>
@@ -99,6 +102,7 @@
 
           <label class="checkout-plan-option">
             <input type="radio" name="plan" value="max" />
+
             <span>
               <strong>Max</strong>
               <small>R$ 89,99 • convidados ilimitados</small>
@@ -113,6 +117,94 @@
             portaria digital, exportação CSV e suporte para liberação.
           </p>
         </div>
+
+        <section class="checkout-pix-panel" aria-labelledby="checkoutPixTitle">
+          <div class="checkout-pix-heading">
+            <span class="eyebrow">Pagamento via Pix</span>
+            <h2 id="checkoutPixTitle">Pague o valor do seu plano</h2>
+
+            <p>
+              Escaneie o QR Code com o aplicativo do banco ou copie o código Pix.
+              Confira o recebedor e o valor antes de confirmar a transferência.
+            </p>
+          </div>
+
+          <div class="checkout-pix-layout">
+            <div
+              class="checkout-pix-qr"
+              id="checkoutPixQrCode"
+              aria-label="QR Code para pagamento via Pix"
+            ></div>
+
+            <div class="checkout-pix-details">
+              <div class="checkout-pix-amount">
+                <span>Valor deste plano</span>
+                <strong id="checkoutPixAmount">R$ 29,90</strong>
+              </div>
+
+              <div class="checkout-pix-recipient">
+                <p>
+                  <strong>Banco:</strong>
+                  <span id="checkoutPixBank">Mercado Pago</span>
+                </p>
+
+                <p>
+                  <strong>Recebedor:</strong>
+                  <span id="checkoutPixHolder">Gilney Wesley Aparecido Vidal</span>
+                </p>
+
+                <p>
+                  <strong>Chave Pix:</strong>
+                  <span id="checkoutPixKey">11968649673</span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="checkout-pix-copy-area">
+            <label for="checkoutPixCopyPaste">
+              Pix copia e cola
+            </label>
+
+            <textarea
+              id="checkoutPixCopyPaste"
+              rows="4"
+              readonly
+              aria-label="Código Pix copia e cola"
+            ></textarea>
+
+            <button
+              type="button"
+              class="btn btn-primary"
+              id="checkoutCopyPixButton"
+            >
+              Copiar código Pix
+            </button>
+
+            <p
+              class="checkout-pix-status"
+              id="checkoutPixStatus"
+              role="status"
+              aria-live="polite"
+            >
+              O QR Code será atualizado quando você mudar de plano.
+            </p>
+          </div>
+
+          <div class="admin-help-box checkout-pix-warning" id="checkoutPixCouponNotice" hidden>
+            <strong>Precisamos conferir seu cupom</strong>
+            <p>
+              Para não gerar um Pix com valor incorreto, o pagamento está aguardando
+              a conferência manual do desconto. Envie sua solicitação pelo WhatsApp
+              e confirme o valor final antes de pagar.
+            </p>
+          </div>
+
+          <p class="checkout-pix-disclaimer">
+            A geração do código Pix não confirma o pagamento automaticamente.
+            A liberação do evento acontece após a conferência do recebimento.
+          </p>
+        </section>
       </article>
 
       <article class="panel-card panel-card-large">
@@ -130,6 +222,7 @@
               type="text"
               id="leadNameInput"
               placeholder="Ex: Maria Oliveira"
+              autocomplete="name"
               required
             />
           </div>
@@ -137,9 +230,10 @@
           <div class="form-group">
             <label for="leadWhatsappInput">Seu WhatsApp</label>
             <input
-              type="text"
+              type="tel"
               id="leadWhatsappInput"
               placeholder="Ex: 11999999999"
+              autocomplete="tel"
               required
             />
           </div>
@@ -150,6 +244,7 @@
               type="email"
               id="leadEmailInput"
               placeholder="Ex: cliente@email.com"
+              autocomplete="email"
               required
             />
           </div>
@@ -165,11 +260,14 @@
           </div>
 
           <div class="form-group">
-            <label for="leadGuestCountInput">Quantidade aproximada de convidados</label>
+            <label for="leadGuestCountInput">
+              Quantidade aproximada de convidados
+            </label>
             <input
               type="number"
               id="leadGuestCountInput"
               min="1"
+              step="1"
               placeholder="Ex: 80"
               required
             />
@@ -181,6 +279,8 @@
               type="text"
               id="leadCouponInput"
               placeholder="Ex: ELISETEGRAF"
+              autocomplete="off"
+              autocapitalize="characters"
             />
           </div>
 
@@ -199,11 +299,11 @@
             <input
               type="text"
               id="leadNotesInput"
-              placeholder="Ex: quero testar para meu casamento"
+              placeholder="Ex: detalhes do evento ou da parceria"
             />
           </div>
 
-          <button type="submit" class="btn btn-primary">
+          <button type="submit" class="btn btn-primary" id="checkoutSubmitButton">
             Enviar solicitação pelo WhatsApp
           </button>
 
@@ -238,31 +338,45 @@
     </div>
   </footer>
 
-  <script src="assets/js/theme.js?v=checkout-3"></script>
+  <script src="assets/js/theme.js?v=pix-1"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <script>
     const business = window.CONFIRMAE_THEME.business;
     const checkoutForm = document.getElementById("checkoutForm");
+    const couponInput = document.getElementById("leadCouponInput");
+    const pixQrBox = document.getElementById("checkoutPixQrCode");
+    const pixCodeInput = document.getElementById("checkoutPixCopyPaste");
+    const pixCopyButton = document.getElementById("checkoutCopyPixButton");
+    const pixStatus = document.getElementById("checkoutPixStatus");
+    const pixCouponNotice = document.getElementById("checkoutPixCouponNotice");
+
+    let currentPixPayload = "";
 
     const planData = {
       essential: {
         id: "essential",
         name: "Confirmaê Essencial",
         price: "R$ 29,90",
+        amount: 29.90,
         limit: "Até 30 convidados",
         numericLimit: 30
       },
+
       pro: {
         id: "pro",
         name: "Confirmaê Pro",
         price: "R$ 49,90",
+        amount: 49.90,
         limit: "Até 60 convidados",
         numericLimit: 60
       },
+
       max: {
         id: "max",
         name: "Confirmaê Max",
         price: "R$ 89,99",
+        amount: 89.99,
         limit: "Convidados ilimitados",
         numericLimit: null
       }
@@ -296,12 +410,113 @@
       return planData[getSelectedPlanId()] || planData.essential;
     }
 
+    function makeEmvField(id, value) {
+      const text = String(value);
+
+      if (text.length > 99) {
+        throw new Error("Campo Pix muito longo: " + id);
+      }
+
+      return id + String(text.length).padStart(2, "0") + text;
+    }
+
+    function calculatePixCrc16(payload) {
+      let crc = 0xFFFF;
+
+      for (let i = 0; i < payload.length; i += 1) {
+        crc ^= payload.charCodeAt(i) << 8;
+
+        for (let bit = 0; bit < 8; bit += 1) {
+          if ((crc & 0x8000) !== 0) {
+            crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
+          } else {
+            crc = (crc << 1) & 0xFFFF;
+          }
+        }
+      }
+
+      return crc.toString(16).toUpperCase().padStart(4, "0");
+    }
+
+    function normalizePixText(value, maximumLength) {
+      return String(value || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toUpperCase()
+        .replace(/[^A-Z0-9 .-]/g, "")
+        .trim()
+        .slice(0, maximumLength);
+    }
+
+    function getPixTelephoneKey() {
+      const configuredKey = String(
+        business.pixKeyForPayload || business.pixKey || ""
+      ).trim();
+
+      if (configuredKey.startsWith("+")) {
+        return configuredKey;
+      }
+
+      const digits = configuredKey.replace(/\D/g, "");
+
+      if (digits.startsWith("55")) {
+        return "+" + digits;
+      }
+
+      return "+55" + digits;
+    }
+
+    function buildPixPayload(amount) {
+      const pixKey = getPixTelephoneKey();
+      const merchantName = normalizePixText(
+        business.pixMerchantName || business.pixHolder,
+        25
+      );
+      const merchantCity = normalizePixText(
+        business.pixMerchantCity,
+        15
+      );
+
+      if (!pixKey || !merchantName || !merchantCity) {
+        throw new Error(
+          "Confira a chave Pix, o nome e a cidade do recebedor em theme.js."
+        );
+      }
+
+      const merchantAccountInformation =
+        makeEmvField("00", "br.gov.bcb.pix") +
+        makeEmvField("01", pixKey);
+
+      const additionalData = makeEmvField("05", "***");
+
+      let payload =
+        makeEmvField("00", "01") +
+        makeEmvField("26", merchantAccountInformation) +
+        makeEmvField("52", "0000") +
+        makeEmvField("53", "986") +
+        makeEmvField("54", Number(amount).toFixed(2)) +
+        makeEmvField("58", "BR") +
+        makeEmvField("59", merchantName) +
+        makeEmvField("60", merchantCity) +
+        makeEmvField("62", additionalData) +
+        "6304";
+
+      payload += calculatePixCrc16(payload);
+
+      return payload;
+    }
+
     function updateCheckoutSummary() {
       const selectedPlan = getSelectedPlan();
 
-      document.getElementById("checkoutPlanName").textContent = selectedPlan.name;
-      document.getElementById("checkoutPlanPrice").textContent = selectedPlan.price;
-      document.getElementById("checkoutPlanLimit").textContent = selectedPlan.limit;
+      document.getElementById("checkoutPlanName").textContent =
+        selectedPlan.name;
+
+      document.getElementById("checkoutPlanPrice").textContent =
+        selectedPlan.price;
+
+      document.getElementById("checkoutPlanLimit").textContent =
+        selectedPlan.limit;
 
       document.querySelectorAll(".checkout-plan-option").forEach((option) => {
         const input = option.querySelector("input");
@@ -312,11 +527,79 @@
           option.classList.remove("is-selected");
         }
       });
+
+      renderPixPayment();
+    }
+
+    function renderPixPayment() {
+      const selectedPlan = getSelectedPlan();
+      const coupon = normalizeCoupon(couponInput.value);
+
+      document.getElementById("checkoutPixAmount").textContent =
+        selectedPlan.price;
+
+      document.getElementById("checkoutPixBank").textContent =
+        business.pixBank;
+
+      document.getElementById("checkoutPixHolder").textContent =
+        business.pixHolder;
+
+      document.getElementById("checkoutPixKey").textContent =
+        business.pixKey;
+
+      pixQrBox.innerHTML = "";
+      pixCodeInput.value = "";
+      currentPixPayload = "";
+
+      if (coupon) {
+        pixCouponNotice.hidden = false;
+        pixCodeInput.disabled = true;
+        pixCopyButton.disabled = true;
+
+        pixStatus.textContent =
+          "O Pix está suspenso enquanto conferimos seu cupom. Aguarde a confirmação do valor final antes de pagar.";
+
+        return;
+      }
+
+      pixCouponNotice.hidden = true;
+      pixCodeInput.disabled = false;
+      pixCopyButton.disabled = false;
+
+      try {
+        currentPixPayload = buildPixPayload(selectedPlan.amount);
+        pixCodeInput.value = currentPixPayload;
+
+        if (typeof QRCode !== "undefined") {
+          new QRCode(pixQrBox, {
+            text: currentPixPayload,
+            width: 220,
+            height: 220,
+            colorDark: "#0D1014",
+            colorLight: "#FFFFFF",
+            correctLevel: QRCode.CorrectLevel.M
+          });
+
+          pixStatus.textContent =
+            "Pix pronto. Confira o recebedor e o valor no aplicativo do banco antes de confirmar.";
+        } else {
+          pixStatus.textContent =
+            "O QR Code não carregou. Você ainda pode copiar o código Pix abaixo.";
+        }
+      } catch (error) {
+        console.error("Erro ao gerar Pix:", error);
+
+        pixStatus.textContent =
+          "Não foi possível gerar o Pix. Confira os dados de recebedor em theme.js e tente novamente.";
+        pixCopyButton.disabled = true;
+      }
     }
 
     function selectPlanFromUrl() {
       const params = new URLSearchParams(window.location.search);
-      const planParam = String(params.get("plano") || params.get("plan") || "").toLowerCase();
+      const planParam = String(
+        params.get("plano") || params.get("plan") || ""
+      ).toLowerCase();
 
       const aliases = {
         essencial: "essential",
@@ -331,7 +614,9 @@
         return;
       }
 
-      const input = document.querySelector(`input[name='plan'][value='${planId}']`);
+      const input = document.querySelector(
+        `input[name='plan'][value='${planId}']`
+      );
 
       if (input) {
         input.checked = true;
@@ -342,13 +627,7 @@
       const params = new URLSearchParams(window.location.search);
       const couponParam = params.get("cupom") || params.get("coupon") || "";
 
-      if (!couponParam) {
-        return;
-      }
-
-      const couponInput = document.getElementById("leadCouponInput");
-
-      if (couponInput) {
+      if (couponParam) {
         couponInput.value = normalizeCoupon(couponParam);
       }
     }
@@ -375,9 +654,45 @@
       return Number(guestCount || 0) <= selectedPlan.numericLimit;
     }
 
+    async function copyPixCode() {
+      if (!currentPixPayload) {
+        alert(
+          "Não há um código Pix disponível. Se você informou cupom, confirme primeiro o valor final pelo WhatsApp."
+        );
+
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(currentPixPayload);
+
+        const originalText = pixCopyButton.textContent;
+        pixCopyButton.textContent = "Código Pix copiado!";
+
+        setTimeout(() => {
+          pixCopyButton.textContent = originalText;
+        }, 1800);
+      } catch (error) {
+        pixCodeInput.focus();
+        pixCodeInput.select();
+
+        const copied = document.execCommand("copy");
+
+        if (copied) {
+          pixStatus.textContent = "Código Pix copiado.";
+        } else {
+          alert("Selecione e copie o código Pix exibido no campo.");
+        }
+      }
+    }
+
     document.querySelectorAll("input[name='plan']").forEach((input) => {
       input.addEventListener("change", updateCheckoutSummary);
     });
+
+    couponInput.addEventListener("input", renderPixPayment);
+
+    pixCopyButton.addEventListener("click", copyPixCode);
 
     checkoutForm.addEventListener("submit", function (event) {
       event.preventDefault();
@@ -389,12 +704,29 @@
       const leadEmail = document.getElementById("leadEmailInput").value.trim();
       const eventType = document.getElementById("leadEventTypeInput").value.trim();
       const guestCount = document.getElementById("leadGuestCountInput").value.trim();
-      const coupon = normalizeCoupon(document.getElementById("leadCouponInput").value);
-      const desiredEventId = normalizeEventId(document.getElementById("leadEventIdInput").value);
+      const coupon = normalizeCoupon(couponInput.value);
+      const desiredEventId = normalizeEventId(
+        document.getElementById("leadEventIdInput").value
+      );
       const notes = document.getElementById("leadNotesInput").value.trim();
 
-      if (!leadName || !leadWhatsapp || !leadEmail || !eventType || !guestCount || !desiredEventId) {
-        alert("Preencha nome, WhatsApp, e-mail, tipo de evento, quantidade de convidados e ID desejado.");
+      if (
+        !leadName ||
+        !leadWhatsapp ||
+        !leadEmail ||
+        !eventType ||
+        !guestCount ||
+        !desiredEventId
+      ) {
+        alert(
+          "Preencha nome, WhatsApp, e-mail, tipo de evento, quantidade de convidados e ID desejado."
+        );
+
+        return;
+      }
+
+      if (Number(guestCount) < 1 || !Number.isInteger(Number(guestCount))) {
+        alert("Informe uma quantidade válida de convidados.");
         return;
       }
 
@@ -407,7 +739,9 @@
           `${suggestedPlan.name} - ${suggestedPlan.price} - ${suggestedPlan.limit}`
         );
 
-        const suggestedInput = document.querySelector(`input[name='plan'][value='${suggestedPlan.id}']`);
+        const suggestedInput = document.querySelector(
+          `input[name='plan'][value='${suggestedPlan.id}']`
+        );
 
         if (suggestedInput) {
           suggestedInput.checked = true;
@@ -415,6 +749,18 @@
         }
 
         return;
+      }
+
+      let paymentInstruction;
+
+      if (coupon) {
+        paymentInstruction =
+          "Cupom informado: aguardo a conferência manual do desconto e a confirmação do valor final antes de pagar.";
+      } else {
+        paymentInstruction =
+          "Pix selecionado no checkout: " +
+          selectedPlan.price +
+          ". Após o pagamento, enviarei o comprovante nesta conversa para conferência.";
       }
 
       const message = [
@@ -433,6 +779,8 @@
         "Valor do plano: " + selectedPlan.price,
         "Cupom informado: " + (coupon || "Não informado"),
         "",
+        "Orientação de pagamento: " + paymentInstruction,
+        "",
         "Observações: " + (notes || "Sem observações"),
         "",
         "Solicito a liberação do meu evento no Confirmaê.",
@@ -445,7 +793,7 @@
         "?text=" +
         encodeURIComponent(message);
 
-      window.open(whatsappUrl, "_blank");
+      window.open(whatsappUrl, "_blank", "noopener");
 
       setTimeout(() => {
         window.location.href =
