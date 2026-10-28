@@ -2780,3 +2780,10 @@ label {
     display: none;
   }
 }
+/* =========================================================
+   Acesso ao painel: respeitar o atributo hidden
+   ========================================================= */
+
+[hidden] {
+  display: none !important;
+}
