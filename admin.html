@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#0D1014" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Confirmaê" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Painel do Anfitrião | Confirmaê</title>
+
+  <meta
+    name="description"
+    content="Painel do anfitrião para personalizar eventos, gerenciar convidados, links individuais, QR Codes e status de confirmação."
+  />
+
+  <link rel="icon" type="image/png" href="assets/img/confirmae-icon.png" />
+  <link rel="apple-touch-icon" href="assets/img/confirmae-icon.png" />
+  <link rel="stylesheet" href="assets/css/style.css?v=footer-1" />
+</head>
+
+<body class="page-admin">
+  <header class="site-header">
+    <div class="container header-content">
+      <a href="index.html" class="brand" aria-label="Página inicial do Confirmaê">
+        <span class="brand-icon">✓</span>
+        <span class="brand-text">Confirmaê</span>
+      </a>
+
+      <nav class="main-nav" aria-label="Menu principal">
+        <a href="index.html">Início</a>
+        <a href="index.html#contratar">Criar evento</a>
+        <a href="convite.html?evento=evento-demo&convidado=convidado-demo">Convite</a>
+        <a href="portaria.html">Portaria</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="dashboard-main">
+    <section class="container dashboard-header">
+      <div>
+        <span class="eyebrow">Painel do anfitrião</span>
+        <h1>Acesse seu evento</h1>
+        <p>
+          Informe o ID e o PIN do painel para personalizar, cadastrar convidados,
+          gerar QR Codes e acompanhar confirmações.
+        </p>
+
+        <div class="hero-actions">
+          <a href="index.html#contratar" class="btn btn-primary">Criar/contratar novo evento</a>
+        </div>
+      </div>
+
+      <div class="event-selector-card">
+        <label for="eventIdInput">ID do evento</label>
+        <input type="text" id="eventIdInput" value="evento-demo" aria-label="ID do evento" />
+
+        <label for="eventPanelPinInput">PIN do painel</label>
+        <input type="password" id="eventPanelPinInput" placeholder="Digite o PIN do painel" aria-label="PIN do painel" />
+
+        <small id="panelPinHelpText">
+          O PIN é enviado pelo WhatsApp após a liberação do evento.
+        </small>
+
+        <button type="button" class="btn btn-secondary" id="loadEventButton">
+          Acessar evento
+        </button>
+      </div>
+    </section>
+
+    <section class="container" id="accessLockedSection" hidden>
+      <article class="panel-card">
+        <div class="panel-heading">
+          <div>
+            <span class="eyebrow">Evento bloqueado</span>
+            <h2>Liberação necessária</h2>
+          </div>
+        </div>
+
+        <div class="features-grid">
+          <article class="feature-card">
+            <div class="feature-icon">ID</div>
+            <h3 id="lockedEventIdText">evento</h3>
+            <p>Este ID ainda não foi liberado para uso no Confirmaê.</p>
+          </article>
+
+          <article class="feature-card">
+            <div class="feature-icon">PIX</div>
+            <h3 id="unlockPriceText">Planos disponíveis</h3>
+            <p>
+              <strong>Banco:</strong> <span id="pixBankText">Mercado Pago</span><br />
+              <strong>Chave:</strong> <span id="pixKeyText">11968649673</span><br />
+              <strong>Nome:</strong> <span id="pixHolderText">Gilney Wesley Aparecido Vidal</span>
+            </p>
+          </article>
+
+          <article class="feature-card">
+            <div class="feature-icon">WA</div>
+            <h3>Enviar comprovante</h3>
+            <p>Após o pagamento, envie o comprovante pelo WhatsApp para liberação manual.</p>
+          </article>
+        </div>
+
+        <div class="hero-actions">
+          <a href="#" class="btn btn-primary" id="unlockWhatsappLink" target="_blank" rel="noopener">
+            Falar no WhatsApp
+          </a>
+
+          <button type="button" class="btn btn-secondary" id="copyPixButton">
+            Copiar chave Pix
+          </button>
+
+          <a href="index.html#contratar" class="btn btn-secondary">
+            Ver explicação completa
+          </a>
+        </div>
+      </article>
+    </section>
+
+    <section class="container stats-grid" data-event-workspace hidden aria-label="Resumo de status dos convidados">
+      <article class="stat-card">
+        <span>Total</span>
+        <strong id="totalGuests">0</strong>
+      </article>
+
+      <article class="stat-card">
+        <span>Aguardando</span>
+        <strong id="waitingGuests">0</strong>
+      </article>
+
+      <article class="stat-card">
+        <span>Aceitos</span>
+        <strong id="acceptedGuests">0</strong>
+      </article>
+
+      <article class="stat-card">
+        <span>Recusados</span>
+        <strong id="declinedGuests">0</strong>
+      </article>
+
+      <article class="stat-card">
+        <span>Presentes</span>
+        <strong id="presentGuests">0</strong>
+      </article>
+    </section>
+
+    <section class="container" data-event-workspace hidden>
+      <article class="panel-card">
+        <div class="panel-heading">
+          <div>
+            <span class="eyebrow">Personalização</span>
+            <h2>Dados do evento</h2>
+          </div>
+        </div>
+
+        <form class="guest-form" id="eventConfigForm">
+          <div class="form-group">
+            <label for="eventNameInput">Nome do evento</label>
+            <input type="text" id="eventNameInput" placeholder="Ex: Casamento João & Maria" required />
+          </div>
+
+          <div class="form-group">
+            <label for="eventTypeInput">Tipo do evento</label>
+            <input type="text" id="eventTypeInput" placeholder="Ex: Casamento, Aniversário, Festa, Formatura" required />
+          </div>
+
+          <div class="form-group">
+            <label for="eventHostInput">Nome do anfitrião</label>
+            <input type="text" id="eventHostInput" placeholder="Ex: João & Maria" />
+          </div>
+
+          <div class="form-group">
+            <label for="eventDateIsoInput">Data oficial do evento</label>
+            <input type="date" id="eventDateIsoInput" />
+          </div>
+
+          <div class="form-group">
+            <label for="eventDateInput">Data exibida no convite</label>
+            <input type="text" id="eventDateInput" placeholder="Ex: 20 de dezembro de 2026" required />
+          </div>
+
+          <div class="form-group">
+            <label for="eventTimeInput">Horário</label>
+            <input type="text" id="eventTimeInput" placeholder="Ex: 19h30" required />
+          </div>
+
+          <div class="form-group">
+            <label for="eventLocationInput">Local</label>
+            <input type="text" id="eventLocationInput" placeholder="Ex: Espaço Jardim Imperial" required />
+          </div>
+
+          <div class="form-group">
+            <label for="eventIntroInput">Mensagem do convite</label>
+            <input type="text" id="eventIntroInput" placeholder="Ex: Você está recebendo este convite especial..." required />
+          </div>
+
+          <button type="submit" class="btn btn-primary">
+            Salvar dados do evento
+          </button>
+        </form>
+      </article>
+    </section>
+
+    <section class="container dashboard-grid" data-event-workspace hidden style="margin-top: 24px;">
+      <article class="panel-card">
+        <div class="panel-heading">
+          <div>
+            <span class="eyebrow">Novo convidado</span>
+            <h2>Cadastrar convite</h2>
+          </div>
+        </div>
+
+        <form class="guest-form" id="guestForm">
+          <div class="form-group">
+            <label for="guestNameInput">Nome do convidado</label>
+            <input type="text" id="guestNameInput" placeholder="Ex: Maria Oliveira" required />
+          </div>
+
+          <div class="form-group">
+            <label for="guestPhoneInput">Telefone</label>
+            <input type="tel" id="guestPhoneInput" placeholder="Ex: (11) 99999-9999" />
+          </div>
+
+          <div class="form-group">
+            <label for="guestEmailInput">E-mail</label>
+            <input type="email" id="guestEmailInput" placeholder="Ex: maria@email.com" />
+          </div>
+
+          <div class="form-group">
+            <label for="guestCompanionsInput">Acompanhantes permitidos</label>
+            <input type="number" id="guestCompanionsInput" min="0" value="0" />
+          </div>
+
+          <button type="submit" class="btn btn-primary">
+            Criar convite
+          </button>
+        </form>
+      </article>
+
+      <article class="panel-card panel-card-large">
+        <div class="panel-heading">
+          <div>
+            <span class="eyebrow">Lista de convidados</span>
+            <h2>Status dos convites</h2>
+          </div>
+
+          <div class="table-actions">
+            <button type="button" class="btn btn-secondary btn-small" id="exportAllGuestsButton">
+              Exportar todos
+            </button>
+
+            <button type="button" class="btn btn-secondary btn-small" id="exportAcceptedGuestsButton">
+              Exportar confirmados
+            </button>
+
+            <button type="button" class="btn btn-secondary btn-small" id="exportPresentGuestsButton">
+              Exportar presentes
+            </button>
+
+            <button type="button" class="btn btn-secondary btn-small" id="exportDeclinedGuestsButton">
+              Exportar recusados
+            </button>
+
+            <button type="button" class="btn btn-secondary btn-small" id="resetDemoButton">
+              Restaurar demo
+            </button>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="guest-table">
+            <thead>
+              <tr>
+                <th>Convidado</th>
+                <th>Contato</th>
+                <th>Status</th>
+                <th>Convite</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+
+            <tbody id="guestTableBody">
+              <tr>
+                <td colspan="5">Aguardando acesso ao evento...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <div class="modal-overlay" id="qrModal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="qrModalTitle">
+      <div class="modal-header">
+        <div>
+          <span class="eyebrow">Convite individual</span>
+          <h2 id="qrModalTitle">QR Code do convidado</h2>
+        </div>
+
+        <button type="button" class="modal-close" id="closeQrModal" aria-label="Fechar modal">
+          ×
+        </button>
+      </div>
+
+      <div class="qr-modal-body">
+        <div class="qr-guest-info">
+          <span class="guest-avatar" id="qrGuestInitial">C</span>
+          <div>
+            <strong id="qrGuestName">Convidado</strong>
+            <small id="qrGuestLink">Link do convite</small>
+          </div>
+        </div>
+
+        <div class="qr-code-box" id="qrCodeBox"></div>
+
+        <div class="qr-actions">
+          <button type="button" class="btn btn-secondary" id="copyQrLinkButton">
+            Copiar link
+          </button>
+
+          <button type="button" class="btn btn-primary" id="downloadQrButton">
+            Baixar QR Code
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+  <div class="container footer-content footer-content-branded">
+    <div class="footer-brand-note">
+      <p>© 2026 Confirmaê.</p>
+      <p>Confirmaê é um sistema desenvolvido por Vidal Design Solutions.</p>
+    </div>
+
+    <a
+      href="http://www.vidaldesignsolutions.com.br"
+      class="developer-badge"
+      target="_blank"
+      rel="noopener"
+      aria-label="Acessar site da Vidal Design Solutions"
+    >
+      <span>Desenvolvido por</span>
+      <img
+        src="assets/img/vidal-design-logo.png"
+        alt="Vidal Design Solutions"
+      />
+    </a>
+  </div>
+</footer>
+
+  <script src="assets/js/theme.js?v=comercial-1"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script type="module" src="assets/js/admin.js?v=csv-1"></script>
+  <script src="assets/js/pwa.js?v=pwa-1"></script>
+</body>
+</html>
