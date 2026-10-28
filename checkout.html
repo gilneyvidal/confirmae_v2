@@ -19,7 +19,7 @@
 
   <link rel="icon" type="image/png" href="assets/img/confirmae-icon.png" />
   <link rel="apple-touch-icon" href="assets/img/confirmae-icon.png" />
-  <link rel="stylesheet" href="assets/css/style.css?v=checkout-3" />
+  <link rel="stylesheet" href="assets/css/style.css?v=pix-1" />
 </head>
 
 <body class="page-admin">
@@ -64,8 +64,8 @@
         <div class="admin-help-box">
           <strong>Pagamento e liberação</strong>
           <p>
-            Depois de enviar a solicitação pelo WhatsApp, envie o comprovante do Pix
-            na conversa para conferência e liberação do evento.
+            Depois de enviar a solicitação pelo WhatsApp, você será direcionado
+            para a tela de pagamento Pix, onde poderá pagar e enviar o comprovante.
           </p>
         </div>
       </div>
@@ -238,7 +238,7 @@
     </div>
   </footer>
 
-  <script src="assets/js/theme.js?v=checkout-3"></script>
+  <script src="assets/js/theme.js?v=pix-1"></script>
 
   <script>
     const business = window.CONFIRMAE_THEME.business;
@@ -447,10 +447,21 @@
 
       window.open(whatsappUrl, "_blank");
 
+      /* Prepara o redirect para a tela de pagamento com PIX */
+      const redirectParams = new URLSearchParams();
+      redirectParams.set("status", "solicitado");
+      redirectParams.set("plano", selectedPlan.id);
+
+      if (coupon) {
+        redirectParams.set("cupom", coupon);
+      }
+
+      if (desiredEventId) {
+        redirectParams.set("evento", desiredEventId);
+      }
+
       setTimeout(() => {
-        window.location.href =
-          "pagamento.html?status=solicitado&plano=" +
-          encodeURIComponent(selectedPlan.id);
+        window.location.href = "pagamento.html?" + redirectParams.toString();
       }, 900);
     });
 
