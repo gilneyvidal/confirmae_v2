@@ -2,23 +2,20 @@
 <html lang="pt-BR">
 <head>
   <link rel="manifest" href="manifest.webmanifest" />
-<meta name="theme-color" content="#0D1014" />
-<meta name="mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-title" content="Confirmaê" />
+  <meta name="theme-color" content="#0D1014" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Confirmaê" />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <title>Portaria | Confirmaê</title>
 
-  <meta
-    name="description"
-    content="Tela de portaria do Confirmaê para validar convidados por QR Code."
-  />
+  <meta name="description" content="Tela de portaria do Confirmaê para validar convidados por QR Code." />
 
   <link rel="icon" type="image/png" href="assets/img/confirmae-icon.png" />
-<link rel="apple-touch-icon" href="assets/img/confirmae-icon.png" />
-<link rel="stylesheet" href="assets/css/style.css?v=footer-1" />
+  <link rel="apple-touch-icon" href="assets/img/confirmae-icon.png" />
+  <link rel="stylesheet" href="assets/css/style.css?v=pix-1" />
 </head>
 
 <body class="page-admin">
@@ -41,35 +38,19 @@
       <div>
         <span class="eyebrow">Controle de entrada</span>
         <h1>Validação da portaria</h1>
-        <p>
-          Informe o ID do evento e o PIN da portaria para liberar o leitor de QR Code.
-        </p>
+        <p>Informe o ID do evento e o PIN da portaria para liberar o leitor de QR Code.</p>
       </div>
 
       <div class="event-selector-card">
         <label for="gateEventIdInput">ID do evento</label>
-        <input
-          type="text"
-          id="gateEventIdInput"
-          value="evento-demo"
-          aria-label="ID do evento da portaria"
-        />
+        <input type="text" id="gateEventIdInput" value="evento-demo" aria-label="ID do evento da portaria" />
 
         <label for="gatePinInput">PIN da portaria</label>
-        <input
-          type="password"
-          id="gatePinInput"
-          placeholder="Digite o PIN da portaria"
-          aria-label="PIN da portaria"
-        />
+        <input type="password" id="gatePinInput" placeholder="Digite o PIN da portaria" aria-label="PIN da portaria" />
 
-        <small id="gateAccessHelpText">
-          Use o PIN da portaria enviado pelo anfitrião.
-        </small>
+        <small id="gateAccessHelpText">Use o PIN da portaria enviado pelo anfitrião.</small>
 
-        <button type="button" class="btn btn-primary" id="unlockGateButton">
-          Liberar portaria
-        </button>
+        <button type="button" class="btn btn-primary" id="unlockGateButton">Liberar portaria</button>
       </div>
     </section>
 
@@ -84,25 +65,16 @@
 
         <div id="qrReader" class="qr-reader-box">
           <div id="scannerIdleContent">
-            <p>
-              Clique em iniciar câmera para ler o QR Code do convidado.
-            </p>
+            <p>Clique em iniciar câmera para ler o QR Code do convidado.</p>
           </div>
         </div>
 
         <div class="hero-actions">
-          <button type="button" class="btn btn-primary" id="startScannerButton">
-            Iniciar câmera
-          </button>
-
-          <button type="button" class="btn btn-secondary" id="stopScannerButton">
-            Parar câmera
-          </button>
+          <button type="button" class="btn btn-primary" id="startScannerButton">Iniciar câmera</button>
+          <button type="button" class="btn btn-secondary" id="stopScannerButton">Parar câmera</button>
         </div>
 
-        <p class="small-note">
-          O navegador pode solicitar permissão para acessar a câmera.
-        </p>
+        <p class="small-note">O navegador pode solicitar permissão para acessar a câmera.</p>
       </article>
 
       <article class="panel-card">
@@ -116,16 +88,10 @@
         <form class="guest-form" id="manualValidationForm">
           <div class="form-group">
             <label for="qrInput">Link do convite ou token</label>
-            <input
-              type="text"
-              id="qrInput"
-              placeholder="Cole aqui o link do convite ou o token do convidado"
-            />
+            <input type="text" id="qrInput" placeholder="Cole aqui o link do convite ou o token do convidado" />
           </div>
 
-          <button type="submit" class="btn btn-primary">
-            Validar entrada
-          </button>
+          <button type="submit" class="btn btn-primary">Validar entrada</button>
         </form>
 
         <div class="admin-help-box">
@@ -152,31 +118,28 @@
   </main>
 
   <footer class="site-footer">
-  <div class="container footer-content footer-content-branded">
-    <div class="footer-brand-note">
-      <p>© 2026 Confirmaê.</p>
-      <p>Confirmaê é um sistema desenvolvido por Vidal Design Solutions.</p>
+    <div class="container footer-content footer-content-branded">
+      <div class="footer-brand-note">
+        <p>© 2026 Confirmaê.</p>
+        <p>Confirmaê é um sistema desenvolvido por Vidal Design Solutions.</p>
+      </div>
+
+      <a
+        href="http://www.vidaldesignsolutions.com.br"
+        class="developer-badge"
+        target="_blank"
+        rel="noopener"
+        aria-label="Acessar site da Vidal Design Solutions"
+      >
+        <span>Desenvolvido por</span>
+        <img src="assets/img/vidal-design-logo.png" alt="Vidal Design Solutions" />
+      </a>
     </div>
+  </footer>
 
-    <a
-      href="http://www.vidaldesignsolutions.com.br"
-      class="developer-badge"
-      target="_blank"
-      rel="noopener"
-      aria-label="Acessar site da Vidal Design Solutions"
-    >
-      <span>Desenvolvido por</span>
-      <img
-        src="assets/img/vidal-design-logo.png"
-        alt="Vidal Design Solutions"
-      />
-    </a>
-  </div>
-</footer>
-
-  <script src="assets/js/theme.js?v=brand-1"></script>
+  <script src="assets/js/theme.js?v=pix-1"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
-  <script type="module" src="assets/js/portaria.js?v=pins-1"></script>
+  <script type="module" src="assets/js/portaria.js?v=pins-2"></script>
   <script src="assets/js/pwa.js?v=pwa-1"></script>
 </body>
 </html>
