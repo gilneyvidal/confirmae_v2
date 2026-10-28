@@ -112,15 +112,68 @@ function formatCurrency(value) {
   });
 }
 
+/**
+ * Converte um valor monetário digitado pelo usuário em número.
+ *
+ * Aceita vários formatos:
+ *   "10"        → 10
+ *   "10,00"     → 10
+ *   "10.00"     → 10       ← (antes virava 1000)
+ *   "R$ 10,00"  → 10
+ *   "1.234,56"  → 1234.56
+ *   "1,234.56"  → 1234.56
+ *   "1.234"     → 1234     ← (antes virava 1.234)
+ */
 function parseCurrencyToNumber(value) {
   if (typeof value === "number") {
-    return value;
+    return Number.isFinite(value) ? value : 0;
   }
 
-  const normalized = String(value || "")
-    .replace(/[^\d,.-]/g, "")
-    .replace(/\./g, "")
-    .replace(",", ".");
+  const raw = String(value || "").trim();
+
+  if (!raw) {
+    return 0;
+  }
+
+  // Remove tudo que não seja dígito, vírgula, ponto ou sinal negativo
+  let normalized = raw.replace(/[^\d,.\-]/g, "");
+
+  if (!normalized) {
+    return 0;
+  }
+
+  const hasComma = normalized.includes(",");
+  const hasDot = normalized.includes(".");
+
+  if (hasComma && hasDot) {
+    // Tem os dois → formato pt-BR: 1.234,56
+    // Verifica qual aparece por último (é o separador decimal)
+    const lastComma = normalized.lastIndexOf(",");
+    const lastDot = normalized.lastIndexOf(".");
+
+    if (lastComma > lastDot) {
+      // pt-BR: ponto é milhar, vírgula é decimal
+      normalized = normalized.replace(/\./g, "").replace(",", ".");
+    } else {
+      // en-US: vírgula é milhar, ponto é decimal
+      normalized = normalized.replace(/,/g, "");
+    }
+  } else if (hasComma) {
+    // Só vírgula: 10,50 → decimal
+    normalized = normalized.replace(",", ".");
+  } else if (hasDot) {
+    // Só ponto: pode ser "10.00" (decimal) ou "1.234" (milhar)
+    const parts = normalized.split(".");
+    const lastPart = parts[parts.length - 1];
+
+    if (lastPart.length <= 2) {
+      // Último grupo tem 1 ou 2 dígitos → é decimal (ex: 10.5, 10.00)
+      // Mantém como está
+    } else {
+      // Último grupo tem 3+ dígitos → é milhar (ex: 1.234, 12.345)
+      normalized = normalized.replace(/\./g, "");
+    }
+  }
 
   const parsed = Number(normalized);
 
@@ -375,13 +428,15 @@ async function createOrUpdateCoupon(data) {
     throw new Error("Informe o código do cupom.");
   }
 
+  const numericDiscount = parseCurrencyToNumber(data.discountAmount);
+
   const couponData = {
     code,
     referrerName: data.referrerName || "",
     referrerWhatsapp: data.referrerWhatsapp || "",
     discountType: "fixed",
-    discountAmount: parseCurrencyToNumber(data.discountAmount),
-    discountAmountFormatted: formatCurrency(parseCurrencyToNumber(data.discountAmount)),
+    discountAmount: numericDiscount,
+    discountAmountFormatted: formatCurrency(numericDiscount),
     active: data.active !== false,
     notes: data.notes || "",
     updatedAt: serverTimestamp()
@@ -405,19 +460,34 @@ async function getCoupon(couponCode) {
   const code = normalizeCouponCode(couponCode);
 
   if (!code) {
+    console.warn("[getCoupon] Código normalizado vazio — cupom ignorado.");
     return null;
   }
 
-  const couponSnapshot = await getDoc(getCouponReference(code));
+  try {
+    const couponSnapshot = await getDoc(getCouponReference(code));
 
-  if (!couponSnapshot.exists()) {
-    return null;
+    if (!couponSnapshot.exists()) {
+      console.warn(`[getCoupon] Cupom "${code}" NÃO existe no Firestore.`);
+      return null;
+    }
+
+    const data = couponSnapshot.data();
+
+    console.info(`[getCoupon] Cupom "${code}" encontrado:`, {
+      code: data.code,
+      discountAmount: data.discountAmount,
+      active: data.active
+    });
+
+    return {
+      id: couponSnapshot.id,
+      ...data
+    };
+  } catch (error) {
+    console.error(`[getCoupon] Erro ao buscar cupom "${code}":`, error);
+    throw error;
   }
-
-  return {
-    id: couponSnapshot.id,
-    ...couponSnapshot.data()
-  };
 }
 
 async function listCoupons() {
@@ -954,6 +1024,7 @@ export {
   getPlanById,
   calculateEventPricing,
   formatCurrency,
+  parseCurrencyToNumber,
   normalizeCouponCode,
   createGuestToken,
   getBaseUrl,
