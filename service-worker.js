@@ -1,4 +1,4 @@
-const CONFIRMAE_CACHE_NAME = "confirmae-cache-v3";
+const CONFIRMAE_CACHE_NAME = "confirmae-cache-v4";
 
 const CONFIRMAE_CORE_ASSETS = [
   "./",
@@ -93,7 +93,13 @@ async function networkFirst(request) {
 
     if (networkResponse && networkResponse.ok) {
       const cache = await caches.open(CONFIRMAE_CACHE_NAME);
-      cache.put(request, networkResponse.clone());
+
+      try {
+        await cache.put(request, networkResponse.clone());
+      } catch (cacheError) {
+        // Alguns tipos de resposta, como vídeos em partes, não podem ser armazenados.
+        console.info("Resposta não armazenada em cache:", cacheError);
+      }
     }
 
     return networkResponse;
@@ -113,9 +119,13 @@ async function staleWhileRevalidate(request) {
   const cachedResponse = await cache.match(request);
 
   const fetchPromise = fetch(request)
-    .then((networkResponse) => {
+    .then(async (networkResponse) => {
       if (networkResponse && networkResponse.ok) {
-        cache.put(request, networkResponse.clone());
+        try {
+          await cache.put(request, networkResponse.clone());
+        } catch (cacheError) {
+          console.info("Resposta não armazenada em cache:", cacheError);
+        }
       }
 
       return networkResponse;
