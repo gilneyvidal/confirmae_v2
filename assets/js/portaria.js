@@ -88,7 +88,25 @@ function rememberGatePin(eventInfo, eventId) {
   }
 }
 
-async function unlockGateAccess() {
+/**
+ * Chamado quando a página abre e não há PIN disponível. Mensagem amigável,
+ * SEM alerta.
+ */
+function showGatePinRequiredMessage() {
+  hideGateWorkspace();
+  gateAccessHelpText.textContent = "Digite o PIN da portaria para liberar o acesso.";
+}
+
+/**
+ * Tenta liberar a portaria.
+ *
+ * @param {Object} options
+ * @param {boolean} options.silent - Se `true`, é carregamento automático.
+ *   Quando o PIN não bate, mostra mensagem amigável em vez de alerta.
+ */
+async function unlockGateAccess(options = {}) {
+  const { silent = false } = options;
+
   const eventId = gateEventIdInput.value.trim() || CONFIRMAE_THEME.defaultEventId;
 
   unlockGateButton.disabled = true;
@@ -101,14 +119,26 @@ async function unlockGateAccess() {
     if (!eventInfo || eventInfo.accessEnabled === false) {
       hideGateWorkspace();
       gateAccessHelpText.textContent = "Este evento está bloqueado ou ainda não foi liberado.";
-      alert("Evento bloqueado ou não liberado.");
+
+      if (!silent) {
+        alert("Evento bloqueado ou não liberado.");
+      }
       return;
     }
 
     if (!isGatePinValid(eventInfo, eventId)) {
       hideGateWorkspace();
-      gateAccessHelpText.textContent = "PIN da portaria incorreto.";
-      alert("PIN da portaria incorreto.");
+
+      if (silent) {
+        showGatePinRequiredMessage();
+      } else {
+        gateAccessHelpText.textContent = "PIN da portaria incorreto.";
+
+        gatePinInput.value = "";
+        gatePinInput.focus();
+
+        alert("PIN da portaria incorreto.");
+      }
       return;
     }
 
@@ -135,10 +165,16 @@ async function unlockGateAccess() {
 
     if (error.code === "event-not-released") {
       gateAccessHelpText.textContent = "Este evento ainda não foi liberado.";
-      alert("Este evento ainda não foi liberado.");
+
+      if (!silent) {
+        alert("Este evento ainda não foi liberado.");
+      }
     } else {
       gateAccessHelpText.textContent = "Não foi possível validar a portaria.";
-      alert("Não foi possível validar a portaria. Confira o Firebase e tente novamente.");
+
+      if (!silent) {
+        alert("Não foi possível validar a portaria. Confira o Firebase e tente novamente.");
+      }
     }
   } finally {
     unlockGateButton.disabled = false;
@@ -409,7 +445,10 @@ async function stopScanner() {
   }
 }
 
-unlockGateButton.addEventListener("click", unlockGateAccess);
+unlockGateButton.addEventListener("click", () => {
+  unlockGateAccess({ silent: false });
+});
+
 startScannerButton.addEventListener("click", startScanner);
 stopScannerButton.addEventListener("click", stopScanner);
 
@@ -441,8 +480,24 @@ validationResult.addEventListener("click", async (event) => {
   }
 });
 
+/* ================================================================
+   CARREGAMENTO INICIAL INTELIGENTE (mesma lógica do admin)
+   ================================================================ */
 hideGateWorkspace();
 
-if (gateEventIdInput.value === CONFIRMAE_THEME.defaultEventId) {
-  unlockGateAccess();
-}
+(function tryInitialGateLoad() {
+  const initialEventId = gateEventIdInput.value.trim() || CONFIRMAE_THEME.defaultEventId;
+  const pinInInput = gatePinInput.value.trim();
+  const pinInStorage = sessionStorage.getItem(getGateStorageKey(initialEventId));
+
+  const canAutoLoad =
+    initialEventId === CONFIRMAE_THEME.defaultEventId ||
+    Boolean(pinInInput) ||
+    Boolean(pinInStorage);
+
+  if (canAutoLoad) {
+    unlockGateAccess({ silent: true });
+  } else {
+    showGatePinRequiredMessage();
+  }
+})();
