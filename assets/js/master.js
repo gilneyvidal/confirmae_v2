@@ -18,6 +18,12 @@ import {
   createOrUpdateCoupon,
   getCoupon,
   listCoupons,
+  toggleCouponActive,
+  deleteCoupon,
+  isCouponValid,
+  getCouponEffectiveStatus,
+  getCouponValidityLabel,
+  getCouponUsageLabel,
   listEventAccessRecords,
   releaseEvent,
   blockEvent,
@@ -27,9 +33,7 @@ import {
 
 const CONFIRMAE_THEME = window.CONFIRMAE_THEME;
 
-const ALLOWED_MASTER_EMAILS = [
-  "gw.vidal@gmail.com"
-];
+const ALLOWED_MASTER_EMAILS = ["gw.vidal@gmail.com"];
 
 const masterLoadingSection = document.getElementById("masterLoadingSection");
 const masterLoginSection = document.getElementById("masterLoginSection");
@@ -79,6 +83,18 @@ const clearCouponFormButton = document.getElementById("clearCouponFormButton");
 const reloadCouponsButton = document.getElementById("reloadCouponsButton");
 const couponsTableBody = document.getElementById("couponsTableBody");
 
+/* Novos campos: validade + limite de uso */
+const couponValidityTypeSelect = document.getElementById("couponValidityTypeSelect");
+const couponValidityDaysGroup = document.getElementById("couponValidityDaysGroup");
+const couponValidityDaysInput = document.getElementById("couponValidityDaysInput");
+const couponValidityDateGroup = document.getElementById("couponValidityDateGroup");
+const couponValidUntilInput = document.getElementById("couponValidUntilInput");
+const couponUsageLimitTypeSelect = document.getElementById("couponUsageLimitTypeSelect");
+const couponMaxUsesGroup = document.getElementById("couponMaxUsesGroup");
+const couponMaxUsesInput = document.getElementById("couponMaxUsesInput");
+const couponCurrentUsesGroup = document.getElementById("couponCurrentUsesGroup");
+const couponCurrentUsesDisplay = document.getElementById("couponCurrentUsesDisplay");
+
 let currentMasterUser = null;
 let lastReleasedRecord = null;
 
@@ -88,10 +104,7 @@ function normalizeEmail(email) {
 
 function isAuthorizedMaster(user) {
   const userEmail = normalizeEmail(user ? user.email : "");
-
-  return ALLOWED_MASTER_EMAILS
-    .map((email) => normalizeEmail(email))
-    .includes(userEmail);
+  return ALLOWED_MASTER_EMAILS.map(normalizeEmail).includes(userEmail);
 }
 
 function hideAllMasterSections() {
@@ -113,20 +126,14 @@ function showLogin() {
 
 function showAccessDenied(user) {
   hideAllMasterSections();
-
-  deniedEmailText.textContent = user && user.email
-    ? user.email
-    : "E-mail não identificado.";
-
+  deniedEmailText.textContent = user && user.email ? user.email : "E-mail não identificado.";
   masterDeniedSection.hidden = false;
 }
 
 function showMasterApp(user) {
   hideAllMasterSections();
-
   masterUserName.textContent = user.displayName || "Administrador";
   masterUserEmail.textContent = user.email || "--";
-
   masterAppSection.hidden = false;
 
   fillPlanOptions();
@@ -140,7 +147,6 @@ function showMasterApp(user) {
 
 function fillPlanOptions() {
   const plans = getPlanOptions();
-
   masterPlanSelect.innerHTML = plans
     .map((plan) => {
       const limitText = plan.guestLimit === null
@@ -174,21 +180,31 @@ function clearMasterForm() {
 function clearCouponForm() {
   couponForm.reset();
   couponActiveSelect.value = "true";
+  couponValidityTypeSelect.value = "none";
+  couponUsageLimitTypeSelect.value = "unlimited";
+  couponCurrentUsesGroup.hidden = true;
+  couponCurrentUsesDisplay.value = "";
+  updateCouponFormVisibility();
+}
+
+function updateCouponFormVisibility() {
+  const validityType = couponValidityTypeSelect.value;
+  couponValidityDaysGroup.hidden = validityType !== "days";
+  couponValidityDateGroup.hidden = validityType !== "date";
+
+  const usageType = couponUsageLimitTypeSelect.value;
+  couponMaxUsesGroup.hidden = usageType !== "limited";
 }
 
 function setTableMessage(message) {
   masterEventsTableBody.innerHTML = `
-    <tr>
-      <td colspan="7">${escapeHtml(message)}</td>
-    </tr>
+    <tr><td colspan="7">${escapeHtml(message)}</td></tr>
   `;
 }
 
 function setCouponTableMessage(message) {
   couponsTableBody.innerHTML = `
-    <tr>
-      <td colspan="5">${escapeHtml(message)}</td>
-    </tr>
+    <tr><td colspan="7">${escapeHtml(message)}</td></tr>
   `;
 }
 
@@ -207,10 +223,7 @@ async function updatePricingPreview() {
   masterDiscountAmountInput.value = pricing.discountAmountFormatted;
   masterFinalAmountInput.value = pricing.finalAmountFormatted;
 
-  return {
-    pricing,
-    coupon
-  };
+  return { pricing, coupon };
 }
 
 function getFormData() {
@@ -277,127 +290,85 @@ function fillCouponForm(coupon) {
   couponDiscountAmountInput.value = coupon.discountAmountFormatted || "";
   couponActiveSelect.value = coupon.active === false ? "false" : "true";
   couponNotesInput.value = coupon.notes || "";
+
+  // Novos campos
+  couponValidityTypeSelect.value = coupon.validityType || "none";
+  couponValidityDaysInput.value = coupon.validityDays || "";
+  couponValidUntilInput.value = coupon.validUntil || "";
+  couponUsageLimitTypeSelect.value = coupon.usageLimitType || "unlimited";
+  couponMaxUsesInput.value = coupon.maxUses || "";
+
+  // Mostra campo de usos atuais ao editar
+  if (coupon.currentUses !== undefined) {
+    couponCurrentUsesGroup.hidden = false;
+    couponCurrentUsesDisplay.value = String(coupon.currentUses);
+  } else {
+    couponCurrentUsesGroup.hidden = true;
+    couponCurrentUsesDisplay.value = "";
+  }
+
+  updateCouponFormVisibility();
 }
 
 function formatDateIsoToBrazil(dateIso) {
-  if (!dateIso) {
-    return "";
-  }
-
+  if (!dateIso) return "";
   const [year, month, day] = String(dateIso).split("-");
-
-  if (!year || !month || !day) {
-    return dateIso;
-  }
-
+  if (!year || !month || !day) return dateIso;
   return `${day}/${month}/${year}`;
 }
 
 function getDaysDifference(dateIso) {
-  if (!dateIso) {
-    return null;
-  }
-
+  if (!dateIso) return null;
   const [year, month, day] = String(dateIso).split("-").map(Number);
-
-  if (!year || !month || !day) {
-    return null;
-  }
+  if (!year || !month || !day) return null;
 
   const eventDate = new Date(year, month - 1, day);
   const today = new Date();
-
   eventDate.setHours(0, 0, 0, 0);
   today.setHours(0, 0, 0, 0);
-
-  const differenceMs = eventDate.getTime() - today.getTime();
-
-  return Math.round(differenceMs / 86400000);
+  return Math.round((eventDate.getTime() - today.getTime()) / 86400000);
 }
 
 function getEventDateAdvice(record) {
   if (record.enabled === false || record.operationalStatus === "blocked") {
-    return {
-      label: "Evento bloqueado",
-      className: "declined"
-    };
+    return { label: "Evento bloqueado", className: "declined" };
   }
 
   const daysDifference = getDaysDifference(record.eventDateIso);
 
   if (daysDifference === null) {
-    return {
-      label: "Aguardando cliente preencher data",
-      className: "waiting"
-    };
+    return { label: "Aguardando cliente preencher data", className: "waiting" };
   }
-
-  if (daysDifference > 0) {
-    return {
-      label: `Faltam ${daysDifference} dia(s)`,
-      className: "accepted"
-    };
-  }
-
-  if (daysDifference === 0) {
-    return {
-      label: "Evento é hoje",
-      className: "present"
-    };
-  }
+  if (daysDifference > 0) return { label: `Faltam ${daysDifference} dia(s)`, className: "accepted" };
+  if (daysDifference === 0) return { label: "Evento é hoje", className: "present" };
 
   const overdueDays = Math.abs(daysDifference);
 
   if (overdueDays >= 7) {
-    return {
-      label: `Vencido há ${overdueDays} dias — excluir recomendado`,
-      className: "declined"
-    };
+    return { label: `Vencido há ${overdueDays} dias — excluir recomendado`, className: "declined" };
   }
-
   if (overdueDays >= 3) {
-    return {
-      label: `Vencido há ${overdueDays} dias — bloquear recomendado`,
-      className: "waiting"
-    };
+    return { label: `Vencido há ${overdueDays} dias — bloquear recomendado`, className: "waiting" };
   }
-
-  return {
-    label: `Finalizado há ${overdueDays} dia(s)`,
-    className: "created"
-  };
+  return { label: `Finalizado há ${overdueDays} dia(s)`, className: "created" };
 }
 
 function getCommercialStatusLabel(status) {
-  const labels = {
-    paid: "Pago",
-    pending: "Pendente",
-    courtesy: "Cortesia",
-    beta: "Beta"
-  };
-
+  const labels = { paid: "Pago", pending: "Pendente", courtesy: "Cortesia", beta: "Beta" };
   return labels[status] || "Pago";
 }
 
 function getOperationalStatusLabel(status) {
-  const labels = {
-    active: "Ativo",
-    blocked: "Bloqueado",
-    finished: "Finalizado",
-    waiting_delete: "Aguardando exclusão"
-  };
-
+  const labels = { active: "Ativo", blocked: "Bloqueado", finished: "Finalizado", waiting_delete: "Aguardando exclusão" };
   return labels[status] || "Ativo";
 }
 
 function openClientAccessWhatsapp(record) {
   const whatsappLink = buildClientAccessWhatsappLink(record);
-
   if (!whatsappLink) {
     alert("Este cliente não tem WhatsApp cadastrado.");
     return;
   }
-
   window.open(whatsappLink, "_blank");
 }
 
@@ -409,11 +380,10 @@ async function handleGoogleSignIn() {
     await signInWithPopup(auth, googleProvider);
   } catch (error) {
     console.error(error);
-
     if (error.code === "auth/unauthorized-domain") {
-  alert(
-    `Domínio não autorizado no Firebase Authentication. Adicione ${window.location.hostname} em Authentication > Settings > Authorized domains.`
-  );
+      alert(
+        `Domínio não autorizado no Firebase Authentication. Adicione ${window.location.hostname} em Authentication > Settings > Authorized domains.`
+      );
     } else if (error.code === "auth/popup-closed-by-user") {
       alert("Login cancelado antes de concluir.");
     } else {
@@ -435,9 +405,7 @@ async function handleLogout() {
 }
 
 async function renderCoupons() {
-  if (!currentMasterUser || !isAuthorizedMaster(currentMasterUser)) {
-    return;
-  }
+  if (!currentMasterUser || !isAuthorizedMaster(currentMasterUser)) return;
 
   setCouponTableMessage("Carregando cupons...");
 
@@ -451,8 +419,10 @@ async function renderCoupons() {
 
     couponsTableBody.innerHTML = coupons
       .map((coupon) => {
-        const statusText = coupon.active === false ? "Inativo" : "Ativo";
-        const statusClass = coupon.active === false ? "declined" : "accepted";
+        const effectiveStatus = getCouponEffectiveStatus(coupon);
+        const isActive = coupon.active !== false;
+        const toggleLabel = isActive ? "Inativar" : "Ativar";
+        const toggleClass = isActive ? "btn-secondary" : "btn-primary";
 
         return `
           <tr>
@@ -475,9 +445,23 @@ async function renderCoupons() {
             </td>
 
             <td>
-              <span class="status-pill status-pill-${statusClass}">
-                <span class="status-dot status-dot-${statusClass}"></span>
-                ${statusText}
+              <div class="guest-contact-cell">
+                <strong>${escapeHtml(getCouponUsageLabel(coupon))}</strong>
+                <small>usos</small>
+              </div>
+            </td>
+
+            <td>
+              <div class="guest-contact-cell">
+                <strong>${escapeHtml(getCouponValidityLabel(coupon))}</strong>
+                <small>validade</small>
+              </div>
+            </td>
+
+            <td>
+              <span class="status-pill status-pill-${effectiveStatus.className}">
+                <span class="status-dot status-dot-${effectiveStatus.className}"></span>
+                ${escapeHtml(effectiveStatus.label)}
               </span>
             </td>
 
@@ -490,6 +474,25 @@ async function renderCoupons() {
                   data-coupon='${escapeHtml(JSON.stringify(coupon))}'
                 >
                   Editar
+                </button>
+
+                <button
+                  type="button"
+                  class="btn ${toggleClass} btn-small"
+                  data-action="toggle-coupon"
+                  data-coupon-code="${escapeHtml(coupon.code || coupon.id)}"
+                  data-coupon-active="${isActive ? "true" : "false"}"
+                >
+                  ${toggleLabel}
+                </button>
+
+                <button
+                  type="button"
+                  class="btn btn-danger btn-small"
+                  data-action="delete-coupon"
+                  data-coupon-code="${escapeHtml(coupon.code || coupon.id)}"
+                >
+                  Apagar
                 </button>
               </div>
             </td>
@@ -504,9 +507,7 @@ async function renderCoupons() {
 }
 
 async function renderMasterList() {
-  if (!currentMasterUser || !isAuthorizedMaster(currentMasterUser)) {
-    return;
-  }
+  if (!currentMasterUser || !isAuthorizedMaster(currentMasterUser)) return;
 
   setTableMessage("Carregando eventos...");
 
@@ -632,13 +633,36 @@ async function handleCouponSubmit(event) {
   submitButton.textContent = "Salvando...";
 
   try {
+    const validityType = couponValidityTypeSelect.value;
+
+    if (validityType === "date" && !couponValidUntilInput.value) {
+      alert("Informe a data de validade do cupom.");
+      submitButton.disabled = false;
+      submitButton.textContent = "Salvar cupom";
+      return;
+    }
+
+    const usageLimitType = couponUsageLimitTypeSelect.value;
+
+    if (usageLimitType === "limited" && (!couponMaxUsesInput.value || Number(couponMaxUsesInput.value) < 1)) {
+      alert("Informe um limite de usos válido (mínimo 1).");
+      submitButton.disabled = false;
+      submitButton.textContent = "Salvar cupom";
+      return;
+    }
+
     await createOrUpdateCoupon({
       code: couponCodeInput.value,
       referrerName: couponReferrerNameInput.value.trim(),
       referrerWhatsapp: couponReferrerWhatsappInput.value.trim(),
       discountAmount: couponDiscountAmountInput.value.trim(),
       active: couponActiveSelect.value === "true",
-      notes: couponNotesInput.value.trim()
+      notes: couponNotesInput.value.trim(),
+      validityType,
+      validityDays: couponValidityDaysInput.value,
+      validUntil: couponValidUntilInput.value,
+      usageLimitType,
+      maxUses: couponMaxUsesInput.value
     });
 
     alert("Cupom salvo com sucesso!");
@@ -679,11 +703,19 @@ async function handleMasterEventSubmit(event) {
     masterGatePinInput.value = data.gatePin;
   }
 
+  // ─── Validação completa do cupom (existência + ativo + validade + limite) ───
   if (data.couponCode) {
     const coupon = await getCoupon(data.couponCode);
 
-    if (!coupon || coupon.active === false) {
-      alert("Cupom não encontrado ou inativo. Crie/ative o cupom antes de aplicar no evento.");
+    if (!coupon) {
+      alert("Cupom não encontrado. Crie o cupom antes de aplicar no evento.");
+      return;
+    }
+
+    const validation = isCouponValid(coupon);
+
+    if (!validation.valid) {
+      alert(`Cupom inválido: ${validation.message}`);
       return;
     }
   }
@@ -717,6 +749,7 @@ async function handleMasterEventSubmit(event) {
 
     clearMasterForm();
     await renderMasterList();
+    await renderCoupons(); // Atualiza contagem de usos do cupom
   } catch (error) {
     console.error(error);
     alert("Não foi possível liberar o evento. Confira as regras do Firestore e tente novamente.");
@@ -728,10 +761,7 @@ async function handleMasterEventSubmit(event) {
 
 async function handleMasterTableClick(event) {
   const clickedButton = event.target.closest("button");
-
-  if (!clickedButton) {
-    return;
-  }
+  if (!clickedButton) return;
 
   if (!currentMasterUser || !isAuthorizedMaster(currentMasterUser)) {
     alert("Você não tem permissão para executar esta ação.");
@@ -749,7 +779,6 @@ async function handleMasterTableClick(event) {
     } catch (error) {
       alert("Não foi possível carregar este registro no formulário.");
     }
-
     return;
   }
 
@@ -766,7 +795,6 @@ async function handleMasterTableClick(event) {
       }
 
       await releaseEvent(record.id, getReleaseDataFromRecord(record));
-
       window.open(buildAdminLink(record.id), "_blank");
     } catch (error) {
       console.error(error);
@@ -775,33 +803,26 @@ async function handleMasterTableClick(event) {
       clickedButton.disabled = false;
       clickedButton.textContent = "Abrir";
     }
-
     return;
   }
 
   if (action === "send-access") {
     try {
       const record = JSON.parse(clickedButton.dataset.record);
-
       if (!record.enabled) {
         alert("Este evento está bloqueado. Desbloqueie antes de enviar o acesso.");
         return;
       }
-
       openClientAccessWhatsapp(record);
     } catch (error) {
       alert("Não foi possível montar a mensagem de acesso.");
     }
-
     return;
   }
 
   if (action === "block") {
     const confirmBlock = confirm(`Deseja bloquear o evento ${eventId}?`);
-
-    if (!confirmBlock) {
-      return;
-    }
+    if (!confirmBlock) return;
 
     try {
       await blockEvent(eventId);
@@ -811,13 +832,11 @@ async function handleMasterTableClick(event) {
       console.error(error);
       alert("Não foi possível bloquear o evento.");
     }
-
     return;
   }
 
   if (action === "unblock") {
     let record = null;
-
     try {
       record = JSON.parse(clickedButton.dataset.record);
     } catch (error) {
@@ -826,10 +845,7 @@ async function handleMasterTableClick(event) {
     }
 
     const confirmUnblock = confirm(`Deseja desbloquear o evento ${record.id}?`);
-
-    if (!confirmUnblock) {
-      return;
-    }
+    if (!confirmUnblock) return;
 
     clickedButton.disabled = true;
     clickedButton.textContent = "Liberando...";
@@ -837,7 +853,6 @@ async function handleMasterTableClick(event) {
     try {
       await releaseEvent(record.id, getReleaseDataFromRecord(record));
       await renderMasterList();
-
       alert("Evento desbloqueado com sucesso.");
     } catch (error) {
       console.error(error);
@@ -846,7 +861,6 @@ async function handleMasterTableClick(event) {
       clickedButton.disabled = false;
       clickedButton.textContent = "Desbloquear";
     }
-
     return;
   }
 
@@ -854,16 +868,10 @@ async function handleMasterTableClick(event) {
     const confirmDelete = confirm(
       `Deseja apagar o evento ${eventId}?\n\nIsso remove o acesso, o evento e os convidados cadastrados.`
     );
-
-    if (!confirmDelete) {
-      return;
-    }
+    if (!confirmDelete) return;
 
     const secondConfirm = confirm("Confirma mesmo? Essa ação não é reversível.");
-
-    if (!secondConfirm) {
-      return;
-    }
+    if (!secondConfirm) return;
 
     try {
       await deleteManagedEvent(eventId);
@@ -876,13 +884,11 @@ async function handleMasterTableClick(event) {
   }
 }
 
-function handleCouponTableClick(event) {
+async function handleCouponTableClick(event) {
   const clickedButton = event.target.closest("button");
+  if (!clickedButton) return;
 
-  if (!clickedButton) {
-    return;
-  }
-
+  /* ─── EDITAR ─── */
   if (clickedButton.dataset.action === "edit-coupon") {
     try {
       const coupon = JSON.parse(clickedButton.dataset.coupon);
@@ -891,9 +897,57 @@ function handleCouponTableClick(event) {
     } catch (error) {
       alert("Não foi possível carregar este cupom.");
     }
+    return;
+  }
+
+  /* ─── TOGGLE (Ativar/Inativar rápido) ─── */
+  if (clickedButton.dataset.action === "toggle-coupon") {
+    const code = clickedButton.dataset.couponCode;
+    const wasActive = clickedButton.dataset.couponActive === "true";
+    const newActive = !wasActive;
+
+    clickedButton.disabled = true;
+    clickedButton.textContent = "Salvando...";
+
+    try {
+      await toggleCouponActive(code, newActive);
+      await renderCoupons();
+    } catch (error) {
+      console.error(error);
+      alert("Não foi possível alterar o status do cupom.");
+      clickedButton.disabled = false;
+      clickedButton.textContent = wasActive ? "Inativar" : "Ativar";
+    }
+    return;
+  }
+
+  /* ─── APAGAR ─── */
+  if (clickedButton.dataset.action === "delete-coupon") {
+    const code = clickedButton.dataset.couponCode;
+
+    const confirmDelete = confirm(
+      `Tem certeza que deseja APAGAR o cupom ${code}?\n\nIsso não pode ser desfeito.\n\nDICA: Se o cupom já foi usado por um cliente, prefira apenas INATIVAR para preservar o histórico.`
+    );
+    if (!confirmDelete) return;
+
+    clickedButton.disabled = true;
+    clickedButton.textContent = "Apagando...";
+
+    try {
+      await deleteCoupon(code);
+      await renderCoupons();
+      alert("Cupom apagado com sucesso.");
+    } catch (error) {
+      console.error(error);
+      alert("Não foi possível apagar o cupom.");
+    }
+    return;
   }
 }
 
+/* =========================================================
+   Listeners
+   ========================================================= */
 googleSignInButton.addEventListener("click", handleGoogleSignIn);
 masterLogoutButton.addEventListener("click", handleLogout);
 deniedLogoutButton.addEventListener("click", handleLogout);
@@ -910,6 +964,10 @@ couponsTableBody.addEventListener("click", handleCouponTableClick);
 masterPlanSelect.addEventListener("change", updatePricingPreview);
 masterCouponCodeInput.addEventListener("blur", updatePricingPreview);
 masterCouponCodeInput.addEventListener("change", updatePricingPreview);
+
+/* Controle de visibilidade dos campos novos */
+couponValidityTypeSelect.addEventListener("change", updateCouponFormVisibility);
+couponUsageLimitTypeSelect.addEventListener("change", updateCouponFormVisibility);
 
 showLoading();
 
