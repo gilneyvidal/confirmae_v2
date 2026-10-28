@@ -1,7 +1,8 @@
 import {
   getPlanById,
   calculateEventPricing,
-  getCoupon
+  getCoupon,
+  normalizeCouponCode
 } from "./app.js";
 
 import { generatePixQrCode } from "./pix.js";
@@ -41,7 +42,7 @@ const whatsappComprovanteLink = document.getElementById("whatsappComprovanteLink
 const shareComprovanteButton = document.getElementById("shareComprovanteButton");
 
 /* =========================================================
-   Sistema simples de Toast (não-bloqueante)
+   Sistema de Toast (não-bloqueante)
    ========================================================= */
 function ensureToastContainer() {
   let container = document.querySelector(".toast-container");
@@ -55,7 +56,7 @@ function ensureToastContainer() {
   return container;
 }
 
-function showToast(message, type = "info") {
+function showToast(message, type = "info", duration = 4000) {
   const container = ensureToastContainer();
   const toast = document.createElement("div");
 
@@ -66,7 +67,7 @@ function showToast(message, type = "info") {
   setTimeout(() => {
     toast.classList.add("is-leaving");
     setTimeout(() => toast.remove(), 320);
-  }, 3200);
+  }, duration);
 }
 
 /* =========================================================
@@ -125,6 +126,43 @@ function applyStatusContent(status) {
 }
 
 /* =========================================================
+   Aviso visível quando o cupom não foi aplicado
+   ========================================================= */
+function showCouponNotice(message, type = "warning") {
+  const existing = document.getElementById("couponNotice");
+
+  if (existing) {
+    existing.remove();
+  }
+
+  const notice = document.createElement("div");
+  notice.id = "couponNotice";
+  notice.style.cssText = [
+    "margin-top: 12px",
+    "padding: 12px 16px",
+    "border-radius: 12px",
+    "font-size: 0.88rem",
+    "line-height: 1.5",
+    type === "warning"
+      ? "background: rgba(250, 204, 21, 0.14)"
+      : "background: rgba(239, 68, 68, 0.14)",
+    type === "warning"
+      ? "border: 1px solid rgba(250, 204, 21, 0.45)"
+      : "border: 1px solid rgba(239, 68, 68, 0.45)",
+    type === "warning"
+      ? "color: #fde68a"
+      : "color: #fca5a5"
+  ].join(";");
+  notice.textContent = message;
+
+  const summaryList = document.querySelector(".payment-summary-list");
+
+  if (summaryList) {
+    summaryList.parentElement.appendChild(notice);
+  }
+}
+
+/* =========================================================
    Montagem dos dados do pedido
    ========================================================= */
 async function buildPaymentData() {
@@ -132,14 +170,30 @@ async function buildPaymentData() {
   let coupon = null;
 
   if (couponCodeParam) {
+    const normalizedCode = normalizeCouponCode(couponCodeParam);
+
+    console.info(
+      `[Pagamento] Cupom na URL: "${couponCodeParam}" | Normalizado: "${normalizedCode}"`
+    );
+
     try {
-      coupon = await getCoupon(couponCodeParam);
+      coupon = await getCoupon(normalizedCode);
+
+      if (coupon) {
+        console.info("[Pagamento] Cupom aplicado com sucesso:", coupon);
+      } else {
+        console.warn("[Pagamento] Cupom não encontrado no Firestore.");
+      }
     } catch (error) {
-      console.warn("Não foi possível buscar o cupom:", error);
+      console.error("[Pagamento] Erro ao buscar cupom:", error);
     }
+  } else {
+    console.info("[Pagamento] Nenhum cupom na URL.");
   }
 
   const pricing = calculateEventPricing(plan.id, coupon);
+
+  console.info("[Pagamento] Cálculo final:", pricing);
 
   return { plan, coupon, pricing };
 }
@@ -155,12 +209,47 @@ function renderSummary({ plan, coupon, pricing }) {
 
   if (discountIsValid) {
     summaryDiscountRow.hidden = false;
-    summaryDiscount.textContent = `${coupon.code || couponCodeParam} (− ${pricing.discountAmountFormatted})`;
+    summaryDiscount.textContent =
+      `${coupon.code || couponCodeParam} (− ${pricing.discountAmountFormatted})`;
   } else {
     summaryDiscountRow.hidden = true;
   }
 
   summaryTotal.textContent = pricing.finalAmountFormatted;
+}
+
+function renderCouponNotice({ coupon, pricing }) {
+  if (!couponCodeParam) {
+    return;
+  }
+
+  // Caso 1: cupom veio na URL mas não foi encontrado
+  if (!coupon) {
+    showCouponNotice(
+      `O cupom "${couponCodeParam}" não foi encontrado. Se você acha que é um erro, ` +
+      `fale com o suporte pelo WhatsApp antes de pagar. Estamos gerando o Pix com o valor cheio do plano.`,
+      "warning"
+    );
+    return;
+  }
+
+  // Caso 2: cupom existe mas está inativo
+  if (coupon.active === false) {
+    showCouponNotice(
+      `O cupom "${couponCodeParam}" está inativo. O Pix foi gerado com o valor cheio do plano.`,
+      "warning"
+    );
+    return;
+  }
+
+  // Caso 3: cupom existe, ativo, mas desconto é zero (valor mal cadastrado)
+  if (pricing.discountAmount <= 0) {
+    showCouponNotice(
+      `O cupom "${couponCodeParam}" está cadastrado com desconto zero. ` +
+      `Fale com o suporte para corrigir. O Pix foi gerado com o valor cheio do plano.`,
+      "warning"
+    );
+  }
 }
 
 function renderPixDetails() {
@@ -321,6 +410,7 @@ async function init() {
     const paymentData = await buildPaymentData();
 
     renderSummary(paymentData);
+    renderCouponNotice(paymentData);
     configureWhatsappLink(paymentData);
     generateQrCode(paymentData);
     configureShareButton();
