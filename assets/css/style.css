@@ -2787,3 +2787,197 @@ label {
 [hidden] {
   display: none !important;
 }
+/* =========================================================
+   Confirmaê v1.2 · PIX + Toasts + Pagamento
+   (bloco aditivo — não remove nada existente)
+   ========================================================= */
+
+/* Layout do resumo de pagamento */
+.payment-summary-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.payment-summary-grid .panel-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Lista de resumo do pedido */
+.payment-summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.payment-summary-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(172, 173, 179, 0.12);
+}
+
+.payment-summary-row span {
+  color: var(--color-muted);
+  font-size: 0.92rem;
+}
+
+.payment-summary-row strong {
+  color: var(--color-text);
+  font-weight: 900;
+}
+
+.payment-summary-row.payment-summary-total {
+  border-bottom: 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(33, 189, 193, 0.3);
+}
+
+.payment-summary-row.payment-summary-total span {
+  color: var(--color-text);
+  font-weight: 800;
+}
+
+.payment-summary-row.payment-summary-total strong {
+  color: var(--color-primary);
+  font-size: 1.5rem;
+  letter-spacing: -0.03em;
+}
+
+/* Caixa do QR Code do Pix */
+.payment-qr-box {
+  width: 300px;
+  min-height: 300px;
+  margin: 20px auto;
+  padding: 20px;
+  border-radius: 24px;
+  background: #ffffff;
+  border: 1px solid rgba(33, 189, 193, 0.28);
+  display: grid;
+  place-items: center;
+  animation: confirmaeSoftPulse 3.8s ease-in-out infinite;
+}
+
+.payment-qr-box canvas,
+.payment-qr-box img {
+  width: 260px;
+  height: 260px;
+}
+
+/* Caixa do copia-e-cola */
+.pix-copy-textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: #0d1014;
+  color: var(--color-text);
+  font-family: "Courier New", monospace;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  resize: vertical;
+  word-break: break-all;
+  margin-bottom: 12px;
+  outline: none;
+}
+
+.pix-copy-textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(33, 189, 193, 0.12);
+}
+
+/* Lista de passos para envio do comprovante */
+.payment-steps-list {
+  margin: 0 0 18px;
+  padding-left: 22px;
+  color: var(--color-muted);
+  line-height: 1.7;
+}
+
+.payment-steps-list li {
+  padding: 6px 0;
+}
+
+.payment-steps-list strong {
+  color: var(--color-text);
+}
+
+/* Toasts (notificações não-bloqueantes) */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  min-width: 260px;
+  max-width: 380px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: 0.92rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-card);
+  animation: confirmaeToastIn 0.32s ease both;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.toast.is-leaving {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.toast.toast-success {
+  border-color: rgba(34, 197, 94, 0.45);
+  background: linear-gradient(180deg, rgba(34, 197, 94, 0.14), rgba(21, 26, 32, 0.96));
+}
+
+.toast.toast-error {
+  border-color: rgba(239, 68, 68, 0.45);
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.14), rgba(21, 26, 32, 0.96));
+}
+
+.toast.toast-info {
+  border-color: rgba(56, 189, 248, 0.4);
+  background: linear-gradient(180deg, rgba(56, 189, 248, 0.12), rgba(21, 26, 32, 0.96));
+}
+
+@keyframes confirmaeToastIn {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Responsividade do pagamento */
+@media (max-width: 1000px) {
+  .payment-summary-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .payment-copy-card {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 700px) {
+  .payment-summary-grid {
+    grid-template-columns: 1fr;
