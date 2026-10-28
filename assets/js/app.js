@@ -44,37 +44,18 @@ const CONFIRMAE_PLANS = [
 ];
 
 const CONFIRMAE_STATUS = {
-  created: {
-    label: "Convite feito",
-    className: "created"
-  },
-  waiting: {
-    label: "Aguardando confirmação",
-    className: "waiting"
-  },
-  accepted: {
-    label: "Aceito",
-    className: "accepted"
-  },
-  declined: {
-    label: "Recusado",
-    className: "declined"
-  },
-  present: {
-    label: "Presente",
-    className: "present"
-  },
-  presentManual: {
-    label: "Presente com liberação manual",
-    className: "manual"
-  }
+  created: { label: "Convite feito", className: "created" },
+  waiting: { label: "Aguardando confirmação", className: "waiting" },
+  accepted: { label: "Aceito", className: "accepted" },
+  declined: { label: "Recusado", className: "declined" },
+  present: { label: "Presente", className: "present" },
+  presentManual: { label: "Presente com liberação manual", className: "manual" }
 };
 
 function createEventNotReleasedError(eventId) {
   const error = new Error(`O evento ${eventId} ainda não foi liberado.`);
   error.code = "event-not-released";
   error.eventId = eventId;
-
   return error;
 }
 
@@ -82,7 +63,6 @@ function createGuestLimitError(limit) {
   const error = new Error(`Este plano permite até ${limit} convidados.`);
   error.code = "guest-limit-reached";
   error.limit = limit;
-
   return error;
 }
 
@@ -105,78 +85,45 @@ function getPlanById(planId) {
 
 function formatCurrency(value) {
   const numberValue = Number(value || 0);
-
   return numberValue.toLocaleString("pt-BR", {
     style: "currency",
     currency: "BRL"
   });
 }
 
-/**
- * Converte um valor monetário digitado pelo usuário em número.
- *
- * Aceita vários formatos:
- *   "10"        → 10
- *   "10,00"     → 10
- *   "10.00"     → 10       ← (antes virava 1000)
- *   "R$ 10,00"  → 10
- *   "1.234,56"  → 1234.56
- *   "1,234.56"  → 1234.56
- *   "1.234"     → 1234     ← (antes virava 1.234)
- */
 function parseCurrencyToNumber(value) {
   if (typeof value === "number") {
     return Number.isFinite(value) ? value : 0;
   }
 
   const raw = String(value || "").trim();
+  if (!raw) return 0;
 
-  if (!raw) {
-    return 0;
-  }
-
-  // Remove tudo que não seja dígito, vírgula, ponto ou sinal negativo
   let normalized = raw.replace(/[^\d,.\-]/g, "");
-
-  if (!normalized) {
-    return 0;
-  }
+  if (!normalized) return 0;
 
   const hasComma = normalized.includes(",");
   const hasDot = normalized.includes(".");
 
   if (hasComma && hasDot) {
-    // Tem os dois → formato pt-BR: 1.234,56
-    // Verifica qual aparece por último (é o separador decimal)
     const lastComma = normalized.lastIndexOf(",");
     const lastDot = normalized.lastIndexOf(".");
-
     if (lastComma > lastDot) {
-      // pt-BR: ponto é milhar, vírgula é decimal
       normalized = normalized.replace(/\./g, "").replace(",", ".");
     } else {
-      // en-US: vírgula é milhar, ponto é decimal
       normalized = normalized.replace(/,/g, "");
     }
   } else if (hasComma) {
-    // Só vírgula: 10,50 → decimal
     normalized = normalized.replace(",", ".");
   } else if (hasDot) {
-    // Só ponto: pode ser "10.00" (decimal) ou "1.234" (milhar)
     const parts = normalized.split(".");
     const lastPart = parts[parts.length - 1];
-
-    if (lastPart.length <= 2) {
-      // Último grupo tem 1 ou 2 dígitos → é decimal (ex: 10.5, 10.00)
-      // Mantém como está
-    } else {
-      // Último grupo tem 3+ dígitos → é milhar (ex: 1.234, 12.345)
+    if (lastPart.length > 2) {
       normalized = normalized.replace(/\./g, "");
     }
   }
 
   const parsed = Number(normalized);
-
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
@@ -213,6 +160,149 @@ function calculateEventPricing(planId, coupon = null) {
   };
 }
 
+/* =========================================================
+   VALIDAÇÃO COMPLETA DE CUPOM
+   =========================================================
+   Verifica:
+   - Se existe
+   - Se está ativo
+   - Se não venceu (por dias desde criação OU data específica)
+   - Se não esgotou (limite de usos)
+   ========================================================= */
+function isCouponValid(coupon) {
+  if (!coupon) {
+    return { valid: false, reason: "not-found", message: "Cupom não encontrado." };
+  }
+
+  if (coupon.active === false) {
+    return { valid: false, reason: "inactive", message: "Este cupom está inativo." };
+  }
+
+  // Validade por dias desde a criação
+  if (coupon.validityType === "days" && Number(coupon.validityDays) > 0) {
+    const created = coupon.createdAt;
+    let createdDate = null;
+
+    if (created && typeof created.toDate === "function") {
+      createdDate = created.toDate();
+    } else if (created instanceof Date) {
+      createdDate = created;
+    } else if (created) {
+      createdDate = new Date(created);
+    }
+
+    if (createdDate && !Number.isNaN(createdDate.getTime())) {
+      const now = new Date();
+      const daysDiff = (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
+
+      if (daysDiff > Number(coupon.validityDays)) {
+        const expirationDate = new Date(createdDate.getTime() + Number(coupon.validityDays) * 24 * 60 * 60 * 1000);
+
+        return {
+          valid: false,
+          reason: "expired",
+          message: `Este cupom venceu em ${expirationDate.toLocaleDateString("pt-BR")} (validade de ${coupon.validityDays} dias).`
+        };
+      }
+    }
+  }
+
+  // Validade por data específica
+  if (coupon.validityType === "date" && coupon.validUntil) {
+    const [year, month, day] = String(coupon.validUntil).split("-").map(Number);
+
+    if (year && month && day) {
+      const validUntilDate = new Date(year, month - 1, day);
+      validUntilDate.setHours(23, 59, 59, 999);
+
+      if (new Date() > validUntilDate) {
+        return {
+          valid: false,
+          reason: "expired",
+          message: `Este cupom venceu em ${validUntilDate.toLocaleDateString("pt-BR")}.`
+        };
+      }
+    }
+  }
+
+  // Limite de usos
+  if (coupon.usageLimitType === "limited" && Number(coupon.maxUses) > 0) {
+    const uses = Number(coupon.currentUses || 0);
+
+    if (uses >= Number(coupon.maxUses)) {
+      return {
+        valid: false,
+        reason: "exhausted",
+        message: `Este cupom já atingiu o limite de ${coupon.maxUses} usos.`
+      };
+    }
+  }
+
+  return { valid: true, reason: "ok", message: "Cupom válido." };
+}
+
+/* =========================================================
+   ESTADO EFETIVO (para exibir na tabela)
+   ========================================================= */
+function getCouponEffectiveStatus(coupon) {
+  if (!coupon) {
+    return { label: "Não encontrado", className: "declined" };
+  }
+
+  const validation = isCouponValid(coupon);
+
+  if (validation.valid) {
+    return { label: "Ativo", className: "accepted" };
+  }
+
+  if (validation.reason === "inactive") {
+    return { label: "Inativo", className: "declined" };
+  }
+
+  if (validation.reason === "expired") {
+    return { label: "Vencido", className: "waiting" };
+  }
+
+  if (validation.reason === "exhausted") {
+    return { label: "Esgotado", className: "declined" };
+  }
+
+  return { label: "Inválido", className: "declined" };
+}
+
+/* =========================================================
+   LABELS DE VALIDADE E USO (para exibir na tabela)
+   ========================================================= */
+function getCouponValidityLabel(coupon) {
+  if (!coupon) return "--";
+
+  if (coupon.validityType === "days" && Number(coupon.validityDays) > 0) {
+    return `${coupon.validityDays} dia(s)`;
+  }
+
+  if (coupon.validityType === "date" && coupon.validUntil) {
+    const [y, m, d] = String(coupon.validUntil).split("-");
+    if (y && m && d) {
+      return `${d}/${m}/${y}`;
+    }
+    return coupon.validUntil;
+  }
+
+  return "Sem prazo";
+}
+
+function getCouponUsageLabel(coupon) {
+  if (!coupon) return "--";
+
+  const uses = Number(coupon.currentUses || 0);
+
+  if (coupon.usageLimitType === "limited" && Number(coupon.maxUses) > 0) {
+    return `${uses} / ${coupon.maxUses}`;
+  }
+
+  return `${uses} / ∞`;
+}
+
 function createGuestToken(name) {
   const normalizedName = String(name || "convidado")
     .normalize("NFD")
@@ -223,14 +313,12 @@ function createGuestToken(name) {
     .slice(0, 24);
 
   const randomPart = Math.random().toString(36).slice(2, 8);
-
   return `${normalizedName || "convidado"}-${randomPart}`;
 }
 
 function getBaseUrl() {
   const currentPath = window.location.pathname;
   const folderPath = currentPath.substring(0, currentPath.lastIndexOf("/") + 1);
-
   return `${window.location.origin}${folderPath}`;
 }
 
@@ -248,15 +336,8 @@ function buildGateLink(eventId) {
 
 function formatBrazilianWhatsappNumber(rawNumber) {
   const digits = String(rawNumber || "").replace(/\D/g, "");
-
-  if (!digits) {
-    return "";
-  }
-
-  if (digits.startsWith("55")) {
-    return digits;
-  }
-
+  if (!digits) return "";
+  if (digits.startsWith("55")) return digits;
   return `55${digits}`;
 }
 
@@ -284,9 +365,7 @@ function buildClientAccessWhatsappLink(record) {
   const planName = record.planName || "Plano não informado";
   const finalAmount = record.finalAmountFormatted || record.amountPaid || "Valor não informado";
 
-  if (!customerWhatsapp) {
-    return "";
-  }
+  if (!customerWhatsapp) return "";
 
   const message = [
     `Olá, ${customerName}! Seu evento foi liberado no Confirmaê. ✅`,
@@ -421,6 +500,9 @@ function getGuestsCollectionReference(eventId) {
   return collection(db, "events", eventId, "guests");
 }
 
+/* =========================================================
+   CRIAR / ATUALIZAR CUPOM (com validade e limite de uso)
+   ========================================================= */
 async function createOrUpdateCoupon(data) {
   const code = normalizeCouponCode(data.code);
 
@@ -429,6 +511,26 @@ async function createOrUpdateCoupon(data) {
   }
 
   const numericDiscount = parseCurrencyToNumber(data.discountAmount);
+
+  const validityType = ["none", "days", "date"].includes(data.validityType)
+    ? data.validityType
+    : "none";
+
+  let validityDays = 0;
+  let validUntil = "";
+
+  if (validityType === "days") {
+    validityDays = Math.max(1, Number(data.validityDays || 0));
+  } else if (validityType === "date") {
+    validUntil = String(data.validUntil || "").trim();
+  }
+
+  const usageLimitType = data.usageLimitType === "limited" ? "limited" : "unlimited";
+  let maxUses = 0;
+
+  if (usageLimitType === "limited") {
+    maxUses = Math.max(1, Number(data.maxUses || 0));
+  }
 
   const couponData = {
     code,
@@ -439,10 +541,20 @@ async function createOrUpdateCoupon(data) {
     discountAmountFormatted: formatCurrency(numericDiscount),
     active: data.active !== false,
     notes: data.notes || "",
+    validityType,
+    validityDays,
+    validUntil,
+    usageLimitType,
+    maxUses,
     updatedAt: serverTimestamp()
   };
 
   const couponSnapshot = await getDoc(getCouponReference(code));
+
+  // Se é novo, inicializa currentUses em 0
+  if (!couponSnapshot.exists()) {
+    couponData.currentUses = 0;
+  }
 
   await setDoc(getCouponReference(code), {
     ...couponData,
@@ -460,7 +572,6 @@ async function getCoupon(couponCode) {
   const code = normalizeCouponCode(couponCode);
 
   if (!code) {
-    console.warn("[getCoupon] Código normalizado vazio — cupom ignorado.");
     return null;
   }
 
@@ -468,21 +579,12 @@ async function getCoupon(couponCode) {
     const couponSnapshot = await getDoc(getCouponReference(code));
 
     if (!couponSnapshot.exists()) {
-      console.warn(`[getCoupon] Cupom "${code}" NÃO existe no Firestore.`);
       return null;
     }
 
-    const data = couponSnapshot.data();
-
-    console.info(`[getCoupon] Cupom "${code}" encontrado:`, {
-      code: data.code,
-      discountAmount: data.discountAmount,
-      active: data.active
-    });
-
     return {
       id: couponSnapshot.id,
-      ...data
+      ...couponSnapshot.data()
     };
   } catch (error) {
     console.error(`[getCoupon] Erro ao buscar cupom "${code}":`, error);
@@ -493,16 +595,45 @@ async function getCoupon(couponCode) {
 async function listCoupons() {
   const couponsSnapshot = await getDocs(collection(db, "coupons"));
 
-  const coupons = couponsSnapshot.docs.map((couponDocument) => {
-    return {
-      id: couponDocument.id,
-      ...couponDocument.data()
-    };
-  });
+  const coupons = couponsSnapshot.docs.map((couponDocument) => ({
+    id: couponDocument.id,
+    ...couponDocument.data()
+  }));
 
   coupons.sort((a, b) => String(a.code || a.id).localeCompare(String(b.code || b.id)));
-
   return coupons;
+}
+
+/* =========================================================
+   TOGGLE RÁPIDO: ativa/inativa um cupom com 1 clique
+   ========================================================= */
+async function toggleCouponActive(couponCode, newActiveValue) {
+  const code = normalizeCouponCode(couponCode);
+
+  if (!code) {
+    throw new Error("Código do cupom inválido.");
+  }
+
+  await updateDoc(getCouponReference(code), {
+    active: Boolean(newActiveValue),
+    updatedAt: serverTimestamp()
+  });
+
+  return getCoupon(code);
+}
+
+/* =========================================================
+   DELETAR CUPOM (permanente)
+   ========================================================= */
+async function deleteCoupon(couponCode) {
+  const code = normalizeCouponCode(couponCode);
+
+  if (!code) {
+    throw new Error("Informe o código do cupom para apagar.");
+  }
+
+  await deleteDoc(getCouponReference(code));
+  return code;
 }
 
 async function getEventAccess(eventId) {
@@ -557,7 +688,6 @@ async function listEventAccessRecords() {
 
         if (eventSnapshot.exists()) {
           const eventData = eventSnapshot.data();
-
           return {
             ...accessData,
             eventDate: eventData.date || accessData.eventDate || "",
@@ -576,10 +706,12 @@ async function listEventAccessRecords() {
   );
 
   records.sort((a, b) => String(a.id).localeCompare(String(b.id)));
-
   return records;
 }
 
+/* =========================================================
+   LIBERAR EVENTO (incrementa uso do cupom se for novo)
+   ========================================================= */
 async function releaseEvent(eventId, data) {
   const safeEventId = String(eventId || "").trim();
 
@@ -646,9 +778,7 @@ async function releaseEvent(eventId, data) {
     updatedAt: serverTimestamp()
   };
 
-  await setDoc(getEventAccessReference(safeEventId), accessData, {
-    merge: true
-  });
+  await setDoc(getEventAccessReference(safeEventId), accessData, { merge: true });
 
   if (!eventSnapshot.exists()) {
     const defaultEventData = getDefaultEventData(safeEventId);
@@ -682,9 +812,30 @@ async function releaseEvent(eventId, data) {
       statusCommercial,
       operationalStatus,
       updatedAt: serverTimestamp()
-    }, {
-      merge: true
-    });
+    }, { merge: true });
+  }
+
+  // ─── Incrementa uso do cupom (somente se é "novo" para este evento) ───
+  const previousCouponCode = normalizeCouponCode(previousAccessData.couponCode || "");
+  const isNewCouponApplication = couponCode && previousCouponCode !== couponCode;
+
+  if (isNewCouponApplication && coupon) {
+    try {
+      const couponRef = getCouponReference(couponCode);
+      const couponSnap = await getDoc(couponRef);
+
+      if (couponSnap.exists()) {
+        const currentUses = Number(couponSnap.data().currentUses || 0);
+
+        await updateDoc(couponRef, {
+          currentUses: currentUses + 1,
+          lastUsedAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+      }
+    } catch (couponError) {
+      console.warn("[releaseEvent] Não foi possível incrementar uso do cupom:", couponError);
+    }
   }
 
   return getEventAccess(safeEventId);
@@ -692,10 +843,7 @@ async function releaseEvent(eventId, data) {
 
 async function blockEvent(eventId) {
   const safeEventId = String(eventId || "").trim();
-
-  if (!safeEventId) {
-    throw new Error("Informe o ID do evento.");
-  }
+  if (!safeEventId) throw new Error("Informe o ID do evento.");
 
   await setDoc(getEventAccessReference(safeEventId), {
     id: safeEventId,
@@ -703,20 +851,15 @@ async function blockEvent(eventId) {
     operationalStatus: "blocked",
     blockedAt: serverTimestamp(),
     updatedAt: serverTimestamp()
-  }, {
-    merge: true
-  });
+  }, { merge: true });
 
   const eventSnapshot = await getDoc(getEventReference(safeEventId));
-
   if (eventSnapshot.exists()) {
     await setDoc(getEventReference(safeEventId), {
       accessEnabled: false,
       operationalStatus: "blocked",
       updatedAt: serverTimestamp()
-    }, {
-      merge: true
-    });
+    }, { merge: true });
   }
 
   return getEventAccess(safeEventId);
@@ -724,10 +867,7 @@ async function blockEvent(eventId) {
 
 async function deleteManagedEvent(eventId) {
   const safeEventId = String(eventId || "").trim();
-
-  if (!safeEventId) {
-    throw new Error("Informe o ID do evento.");
-  }
+  if (!safeEventId) throw new Error("Informe o ID do evento.");
 
   const guestsSnapshot = await getDocs(getGuestsCollectionReference(safeEventId));
   const guestDocs = guestsSnapshot.docs;
@@ -735,11 +875,7 @@ async function deleteManagedEvent(eventId) {
   for (let index = 0; index < guestDocs.length; index += 450) {
     const batch = writeBatch(db);
     const chunk = guestDocs.slice(index, index + 450);
-
-    chunk.forEach((guestDocument) => {
-      batch.delete(guestDocument.ref);
-    });
-
+    chunk.forEach((guestDocument) => batch.delete(guestDocument.ref));
     await batch.commit();
   }
 
@@ -752,10 +888,7 @@ async function ensureEventExists(eventId) {
   const eventSnapshot = await getDoc(eventReference);
 
   if (eventSnapshot.exists()) {
-    return {
-      id: eventSnapshot.id,
-      ...eventSnapshot.data()
-    };
+    return { id: eventSnapshot.id, ...eventSnapshot.data() };
   }
 
   if (eventId !== DEFAULT_EVENT_ID) {
@@ -763,7 +896,6 @@ async function ensureEventExists(eventId) {
   }
 
   const eventData = getDefaultEventData(eventId);
-
   await setDoc(eventReference, {
     ...eventData,
     id: eventId,
@@ -776,17 +908,9 @@ async function ensureEventExists(eventId) {
 
 async function getEvent(eventId) {
   await ensureEventExists(eventId);
-
   const eventSnapshot = await getDoc(getEventReference(eventId));
-
-  if (!eventSnapshot.exists()) {
-    return null;
-  }
-
-  return {
-    id: eventSnapshot.id,
-    ...eventSnapshot.data()
-  };
+  if (!eventSnapshot.exists()) return null;
+  return { id: eventSnapshot.id, ...eventSnapshot.data() };
 }
 
 async function saveEvent(eventId, eventData) {
@@ -800,10 +924,7 @@ async function saveEvent(eventId, eventData) {
     updatedAt: serverTimestamp()
   };
 
-  await setDoc(getEventReference(safeEventId), updatedEvent, {
-    merge: true
-  });
-
+  await setDoc(getEventReference(safeEventId), updatedEvent, { merge: true });
   return getEvent(safeEventId);
 }
 
@@ -811,17 +932,13 @@ async function ensureDemoGuestsExist() {
   await ensureEventExists(DEFAULT_EVENT_ID);
 
   const guestsSnapshot = await getDocs(getGuestsCollectionReference(DEFAULT_EVENT_ID));
-
-  if (!guestsSnapshot.empty) {
-    return;
-  }
+  if (!guestsSnapshot.empty) return;
 
   const batch = writeBatch(db);
   const demoGuests = getDemoGuestsSeed();
 
   demoGuests.forEach((guest) => {
     const guestReference = getGuestReference(DEFAULT_EVENT_ID, guest.id);
-
     batch.set(guestReference, {
       ...guest,
       createdAt: serverTimestamp(),
@@ -839,49 +956,28 @@ async function getGuestsByEvent(eventId) {
     await ensureEventExists(eventId);
   }
 
-  const guestsQuery = query(
-    getGuestsCollectionReference(eventId),
-    orderBy("name", "asc")
-  );
-
+  const guestsQuery = query(getGuestsCollectionReference(eventId), orderBy("name", "asc"));
   const guestsSnapshot = await getDocs(guestsQuery);
 
-  return guestsSnapshot.docs.map((guestDocument) => {
-    return {
-      id: guestDocument.id,
-      ...guestDocument.data()
-    };
-  });
+  return guestsSnapshot.docs.map((guestDocument) => ({
+    id: guestDocument.id,
+    ...guestDocument.data()
+  }));
 }
 
 async function findGuest(eventId, guestId) {
   await ensureEventExists(eventId);
-
   const guestSnapshot = await getDoc(getGuestReference(eventId, guestId));
-
-  if (!guestSnapshot.exists()) {
-    return null;
-  }
-
-  return {
-    id: guestSnapshot.id,
-    ...guestSnapshot.data()
-  };
+  if (!guestSnapshot.exists()) return null;
+  return { id: guestSnapshot.id, ...guestSnapshot.data() };
 }
 
 async function updateGuest(eventId, guestId, updates) {
   const guestReference = getGuestReference(eventId, guestId);
   const guestSnapshot = await getDoc(guestReference);
+  if (!guestSnapshot.exists()) return null;
 
-  if (!guestSnapshot.exists()) {
-    return null;
-  }
-
-  await updateDoc(guestReference, {
-    ...updates,
-    updatedAt: serverTimestamp()
-  });
-
+  await updateDoc(guestReference, { ...updates, updatedAt: serverTimestamp() });
   return findGuest(eventId, guestId);
 }
 
@@ -891,7 +987,6 @@ async function addGuest(guestData) {
 
   if (eventId !== DEFAULT_EVENT_ID && eventInfo.guestLimit !== null && eventInfo.guestLimit !== undefined) {
     const guestsSnapshot = await getDocs(getGuestsCollectionReference(eventId));
-
     if (guestsSnapshot.size >= Number(eventInfo.guestLimit)) {
       throw createGuestLimitError(Number(eventInfo.guestLimit));
     }
@@ -912,12 +1007,7 @@ async function addGuest(guestData) {
   };
 
   await setDoc(getGuestReference(eventId, newGuest.id), newGuest);
-
-  return {
-    ...newGuest,
-    createdAt: "",
-    updatedAt: ""
-  };
+  return { ...newGuest, createdAt: "", updatedAt: "" };
 }
 
 async function removeGuest(eventId, guestId) {
@@ -928,21 +1018,14 @@ async function resetDemoGuests() {
   await ensureEventExists(DEFAULT_EVENT_ID);
 
   const guestsSnapshot = await getDocs(getGuestsCollectionReference(DEFAULT_EVENT_ID));
-
   const deleteBatch = writeBatch(db);
-
-  guestsSnapshot.docs.forEach((guestDocument) => {
-    deleteBatch.delete(guestDocument.ref);
-  });
-
+  guestsSnapshot.docs.forEach((guestDocument) => deleteBatch.delete(guestDocument.ref));
   await deleteBatch.commit();
 
   const createBatch = writeBatch(db);
   const demoGuests = getDemoGuestsSeed();
-
   demoGuests.forEach((guest) => {
     const guestReference = getGuestReference(DEFAULT_EVENT_ID, guest.id);
-
     createBatch.set(guestReference, {
       ...guest,
       createdAt: serverTimestamp(),
@@ -951,7 +1034,6 @@ async function resetDemoGuests() {
   });
 
   await createBatch.commit();
-
   return getGuestsByEvent(DEFAULT_EVENT_ID);
 }
 
@@ -963,26 +1045,18 @@ function getGuestStatusInfo(guest) {
   if (guest && guest.status === "present" && guest.gateOverride === true) {
     return CONFIRMAE_STATUS.presentManual;
   }
-
   return getStatusInfo(guest ? guest.status : "created");
 }
 
 function getInitials(name) {
   const cleanName = String(name || "Convidado").trim();
-
-  if (!cleanName) {
-    return "C";
-  }
-
+  if (!cleanName) return "C";
   return cleanName.charAt(0).toUpperCase();
 }
 
 function parseInvitationInput(inputValue) {
   const value = String(inputValue || "").trim();
-
-  if (!value) {
-    return null;
-  }
+  if (!value) return null;
 
   if (value.includes("?")) {
     try {
@@ -991,20 +1065,14 @@ function parseInvitationInput(inputValue) {
       const guestId = temporaryUrl.searchParams.get("convidado");
 
       if (eventId && guestId) {
-        return {
-          eventId,
-          guestId
-        };
+        return { eventId, guestId };
       }
     } catch (error) {
       console.warn("Não foi possível interpretar o link informado.", error);
     }
   }
 
-  return {
-    eventId: DEFAULT_EVENT_ID,
-    guestId: value
-  };
+  return { eventId: DEFAULT_EVENT_ID, guestId: value };
 }
 
 function escapeHtml(value) {
@@ -1026,6 +1094,10 @@ export {
   formatCurrency,
   parseCurrencyToNumber,
   normalizeCouponCode,
+  isCouponValid,
+  getCouponEffectiveStatus,
+  getCouponValidityLabel,
+  getCouponUsageLabel,
   createGuestToken,
   getBaseUrl,
   buildInvitationLink,
@@ -1036,6 +1108,8 @@ export {
   createOrUpdateCoupon,
   getCoupon,
   listCoupons,
+  toggleCouponActive,
+  deleteCoupon,
   getEventAccess,
   listEventAccessRecords,
   releaseEvent,
