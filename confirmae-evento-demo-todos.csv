@@ -1,0 +1,5 @@
+﻿"Evento";"ID do evento";"Nome do convidado";"Telefone";"E-mail";"Acompanhantes permitidos";"Status";"Presente com liberação manual";"Data/hora de entrada";"ID do convite";"Link do convite"
+"festa teste";"evento-demo";"Ana Lima";"(11) 96666-3333";"ana@email.com";"2";"Convite feito";"Não";"";"ana-lima";"https://gilneyvidal.github.io/confirmae/convite.html?evento=evento-demo&convidado=ana-lima"
+"festa teste";"evento-demo";"Carlos Santos";"(11) 97777-2222";"carlos@email.com";"0";"Recusado";"Não";"";"carlos-santos";"https://gilneyvidal.github.io/confirmae/convite.html?evento=evento-demo&convidado=carlos-santos"
+"festa teste";"evento-demo";"Gilney Vidal";"(11) 99999-0000";"gilney@email.com";"0";"Aguardando confirmação";"Não";"";"convidado-demo";"https://gilneyvidal.github.io/confirmae/convite.html?evento=evento-demo&convidado=convidado-demo"
+"festa teste";"evento-demo";"Maria Oliveira";"(11) 98888-1111";"maria@email.com";"1";"Aceito";"Não";"";"maria-oliveira";"https://gilneyvidal.github.io/confirmae/convite.html?evento=evento-demo&convidado=maria-oliveira"
