@@ -5,9 +5,18 @@ const CONFIRMAE_THEME = {
   business: {
     whatsappNumberInternational: "5511968649673",
     whatsappDisplay: "(11) 96864-9673",
+
     pixBank: "Mercado Pago",
     pixKey: "11968649673",
+    pixKeyForPayload: "+5511968649673",
     pixHolder: "Gilney Wesley Aparecido Vidal",
+
+    // O nome no BR Code tem limite de 25 caracteres.
+    pixMerchantName: "GILNEY WESLEY APARECIDO",
+
+    // CONFIRA a cidade correta antes de usar o Pix em produção.
+    pixMerchantCity: "SAO PAULO",
+
     unlockPrice: "R$ 29,90",
     paymentDescription: "Liberação de novo evento no Confirmaê"
   },
@@ -64,4 +73,5 @@ function applyConfirmaeTheme() {
 }
 
 window.CONFIRMAE_THEME = CONFIRMAE_THEME;
+
 applyConfirmaeTheme();
