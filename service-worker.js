@@ -1,4 +1,4 @@
-const CONFIRMAE_CACHE_NAME = "confirmae-cache-v3";
+const CONFIRMAE_CACHE_NAME = "confirmae-cache-v4";
 
 const CONFIRMAE_CORE_ASSETS = [
   "./",
@@ -18,6 +18,9 @@ const CONFIRMAE_CORE_ASSETS = [
   "./assets/js/admin.js",
   "./assets/js/master.js",
   "./assets/js/portaria.js",
+  "./assets/js/convite.js",
+  "./assets/js/pagamento.js",
+  "./assets/js/pix.js",
   "./assets/js/pwa.js",
   "./assets/js/animations.js",
   "./assets/img/confirmae-icon.png",
@@ -58,16 +61,10 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const request = event.request;
-
-  if (request.method !== "GET") {
-    return;
-  }
+  if (request.method !== "GET") return;
 
   const requestUrl = new URL(request.url);
-
-  if (requestUrl.origin !== self.location.origin) {
-    return;
-  }
+  if (requestUrl.origin !== self.location.origin) return;
 
   if (request.mode === "navigate") {
     event.respondWith(networkFirst(request));
@@ -90,20 +87,14 @@ self.addEventListener("fetch", (event) => {
 async function networkFirst(request) {
   try {
     const networkResponse = await fetch(request);
-
     if (networkResponse && networkResponse.ok) {
       const cache = await caches.open(CONFIRMAE_CACHE_NAME);
       cache.put(request, networkResponse.clone());
     }
-
     return networkResponse;
   } catch (error) {
     const cachedResponse = await caches.match(request);
-
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-
+    if (cachedResponse) return cachedResponse;
     return caches.match("./index.html");
   }
 }
@@ -117,7 +108,6 @@ async function staleWhileRevalidate(request) {
       if (networkResponse && networkResponse.ok) {
         cache.put(request, networkResponse.clone());
       }
-
       return networkResponse;
     })
     .catch(() => cachedResponse);
