@@ -28,8 +28,10 @@ const eventHostInput = document.getElementById("eventHostInput");
 const eventDateIsoInput = document.getElementById("eventDateIsoInput");
 const eventTimeInput = document.getElementById("eventTimeInput");
 const eventLocationInput = document.getElementById("eventLocationInput");
-const eventIntroSelect = document.getElementById("eventIntroSelect");
-const customIntroGroup = document.getElementById("customIntroGroup");
+const addressSuggestions = document.getElementById("address-suggestions");
+const locationHelpText = document.getElementById("locationHelpText");
+const eventIntroCategory = document.getElementById("eventIntroCategory");
+const eventIntroVariation = document.getElementById("eventIntroVariation");
 const eventIntroInput = document.getElementById("eventIntroInput");
 
 const guestForm = document.getElementById("guestForm");
@@ -69,19 +71,87 @@ let currentGuests = []; let lastCreatedGuest = null;
 eventIdInput.value = currentEventId;
 eventPanelPinInput.value = getQueryParam("pin") || "";
 
-// Templates de mensagens
-const introTemplates = {
-  "casamento": "É com imensa alegria que convidamos você para celebrar o nosso casamento. Sua presença tornará esse dia ainda mais especial!",
-  "aniversario": "Prepare a energia e venha comemorar mais um ano de vida comigo. Sua presença é o melhor presente!",
-  "aniversario-infantil": "Estamos em festa! Venha comemorar o aniversário do(a) [Nome da criança] com muita diversão e alegria.",
-  "formatura": "É com orgulho que convidamos você para celebrar a conquista da nossa formatura. Venha compartilhar esse momento inesquecível!",
-  "corporativo": "Convidamos você para o nosso evento corporativo. Será uma excelente oportunidade para networking e celebração de nossas conquistas.",
-  "cha-bebe": "Com o coração transbordando de amor, convidamos você para o nosso chá de bebê. Venha celebrar a chegada do nosso pequeno milagre!",
-  "cha-casa": "Estamos de casa nova! Convidamos você para celebrar essa nova etapa conosco em nosso chá de casa nova.",
-  "festa-junina": "Vem aí o nosso arraial! Prepare o chapéu de palha, a camisa xadrez e venha dançar quadrilha com a gente.",
-  "batizado": "Convidamos você para testemunhar o batizado do nosso(a) filho(a). Será um dia de fé, amor e celebração em família.",
-  "custom": ""
+// =========================================================
+// TEMPLATES DE MENSAGENS (3 Variações por Categoria)
+// =========================================================
+const messageTemplates = {
+  "casamento": [
+    "É com imensa alegria que convidamos você para celebrar o nosso casamento. Sua presença tornará esse dia ainda mais especial!",
+    "Com a bênção de Deus e a alegria de nossas famílias, convidamos você para o nosso casamento. Aguardamos você!",
+    "O grande dia chegou! Convidamos você para celebrar conosco o início da nossa nova família. Contamos com sua presença."
+  ],
+  "aniversario": [
+    "Prepare a energia e venha comemorar mais um ano de vida comigo. Sua presença é o melhor presente!",
+    "Estamos em festa! Venha celebrar mais um ano de conquistas e alegrias ao meu lado. Não falte!",
+    "Um novo ciclo começa! Convido você para celebrar essa data especial comigo. Será uma noite inesquecível."
+  ],
+  "aniversario-infantil": [
+    "Estamos em festa! Venha comemorar o aniversário do(a) [Nome da criança] com muita diversão e alegria.",
+    "Prepare o sorriso e a fantasia! É hora de celebrar o aniversário do(a) [Nome da criança]. Vai ser muito divertido!",
+    "Com muita cor e alegria, convidamos você para a festa de aniversário do(a) [Nome da criança]. Esperamos por você!"
+  ],
+  "formatura": [
+    "É com orgulho que convidamos você para celebrar a conquista da nossa formatura. Venha compartilhar esse momento inesquecível!",
+    "A jornada foi longa, mas a vitória chegou! Convidamos você para a nossa colação de grau e festa de formatura.",
+    "Celebre conosco o fim de um ciclo e o início de uma nova etapa profissional. Sua presença é fundamental!"
+  ],
+  "corporativo": [
+    "Convidamos você para o nosso evento corporativo. Será uma excelente oportunidade para networking e celebração.",
+    "Prezado(a), temos a honra de convidá-lo(a) para o nosso encontro anual. Sua presença engrandece a ocasião.",
+    "Marcamos um encontro com o futuro. Participe do nosso evento corporativo e compartilhe ideias e conquistas."
+  ],
+  "cha-bebe": [
+    "Com o coração transbordando de amor, convidamos você para o nosso chá de bebê. Venha celebrar a chegada do nosso pequeno milagre!",
+    "Estamos ansiosos pela chegada do nosso bebê e queremos você conosco nessa celebração. Venha ao nosso chá de bebê!",
+    "Um novo amor está chegando! Convidamos você para o nosso chá de bebê, um momento de carinho e felicidade."
+  ],
+  "cha-casa": [
+    "Estamos de casa nova! Convidamos você para celebrar essa nova etapa conosco em nosso chá de casa nova.",
+    "Nada melhor do que estrear nossa casa com as pessoas que amamos. Venha para o nosso chá de casa nova!",
+    "Novos sonhos, novo lar. Convidamos você para conhecer nossa casa nova e celebrar essa conquista com a gente."
+  ],
+  "festa-junina": [
+    "Vem aí o nosso arraial! Prepare o chapéu de palha, a camisa xadrez e venha dançar quadrilha com a gente.",
+    "A fogueira já está acesa! Convidamos você para a nossa festa junina. Terá comidas típicas, música e muita diversão.",
+    "Prepare o pé de moleque e a pipoca! Está chegando a hora do nosso arraiá. Contamos com sua presença!"
+  ],
+  "batizado": [
+    "Convidamos você para testemunhar o batizado do nosso(a) filho(a). Será um dia de fé, amor e celebração em família.",
+    "Com o coração cheio de fé, convidamos você para o batizado do nosso(a) filho(a). Sua presença abençoa este momento.",
+    "Um dia especial de bênçãos e renovação. Participe conosco do batizado do nosso(a) filho(a)."
+  ]
 };
+
+// Autocomplete de Endereço (OpenStreetMap Nominatim)
+let addressTimeout = null;
+eventLocationInput.addEventListener("input", (e) => {
+  const query = e.target.value;
+  if (query.length < 4) return;
+  
+  clearTimeout(addressTimeout);
+  addressTimeout = setTimeout(async () => {
+    try {
+      locationHelpText.textContent = "Buscando endereços...";
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`);
+      const data = await res.json();
+      
+      addressSuggestions.innerHTML = "";
+      if (data.length > 0) {
+        locationHelpText.textContent = "Selecione uma opção na lista.";
+        data.forEach(place => {
+          const option = document.createElement("option");
+          option.value = place.display_name;
+          addressSuggestions.appendChild(option);
+        });
+      } else {
+        locationHelpText.textContent = "Nenhum endereço encontrado. Digite manualmente.";
+      }
+    } catch (err) {
+      console.warn("Erro no mapa", err);
+      locationHelpText.textContent = "Digite o endereço manualmente.";
+    }
+  }, 800); // Espera 800ms depois que o usuário para de digitar
+});
 
 if ('contacts' in navigator && 'ContactsManager' in window) {
   pickContactButton.hidden = false;
@@ -199,32 +269,53 @@ function exportGuests(type) {
   downloadCsv(`confirmae-${sanitizeFileName(currentEventId)}-${type}.csv`, [header, ...rows]);
 }
 
+function populateVariations(category) {
+  const variations = messageTemplates[category] || [];
+  eventIntroVariation.innerHTML = variations.map((text, idx) => `<option value="${idx}">Opção ${idx + 1}</option>`).join("") + '<option value="custom">--- Escrever do zero ---</option>';
+  if (variations.length > 0) {
+    eventIntroVariation.value = "0";
+    eventIntroInput.value = variations[0];
+  }
+}
+
+eventIntroCategory.addEventListener("change", (e) => {
+  populateVariations(e.target.value);
+});
+
+eventIntroVariation.addEventListener("change", (e) => {
+  const cat = eventIntroCategory.value;
+  const val = e.target.value;
+  if (val === "custom") {
+    eventIntroInput.value = "";
+    eventIntroInput.focus();
+  } else {
+    eventIntroInput.value = messageTemplates[cat][parseInt(val, 10)];
+  }
+});
+
 function renderEventConfig(eventInfo) {
   eventNameInput.value = eventInfo.name || "";
   eventTypeInput.value = eventInfo.type || "";
   eventHostInput.value = eventInfo.hostName || "";
   eventDateIsoInput.value = eventInfo.eventDateIso || "";
-  // Horário: se vier "19h30" do banco, converte pra "19:30" pro input time
+  
   let timeValue = eventInfo.time || "";
   if (timeValue.includes("h")) timeValue = timeValue.replace("h", ":");
   eventTimeInput.value = timeValue;
+  
   eventLocationInput.value = eventInfo.location || "";
+  eventIntroInput.value = eventInfo.intro || "";
+
+  // Tenta adivinhar a categoria baseada no texto (simplificado)
+  let matchedCat = "casamento";
+  const intro = eventInfo.intro || "";
+  if (intro.includes("aniversário") || intro.includes("vida")) matchedCat = "aniversario";
+  else if (intro.includes("formatura") || intro.includes("colação")) matchedCat = "formatura";
+  else if (intro.includes("bebê")) matchedCat = "cha-bebe";
   
-  // Verifica se a mensagem atual bate com algum template
-  const currentIntro = eventInfo.intro || "";
-  let matchedTemplate = "custom";
-  for (const [key, text] of Object.entries(introTemplates)) {
-    if (key !== "custom" && currentIntro.startsWith(text.substring(0, 20))) { matchedTemplate = key; break; }
-  }
-  
-  if (matchedTemplate === "custom") {
-    eventIntroSelect.value = "custom";
-    eventIntroInput.value = currentIntro;
-    customIntroGroup.hidden = false;
-  } else {
-    eventIntroSelect.value = matchedTemplate;
-    customIntroGroup.hidden = true;
-  }
+  eventIntroCategory.value = matchedCat;
+  populateVariations(matchedCat);
+  eventIntroVariation.value = "custom"; // Assume que o texto já salvo é custom
 }
 
 async function renderGuests() {
@@ -334,12 +425,8 @@ async function handleEventConfigSubmit(event) {
   btn.disabled = true; btn.textContent = "Salvando...";
 
   const dateIso = eventDateIsoInput.value;
-  const timeRaw = eventTimeInput.value; // Vem como "19:30"
-  let finalIntro = eventIntroInput.value;
-
-  if (eventIntroSelect.value !== "custom") {
-    finalIntro = introTemplates[eventIntroSelect.value];
-  }
+  const timeRaw = eventTimeInput.value;
+  const finalIntro = eventIntroInput.value;
 
   try {
     await saveEvent(currentEventId, {
@@ -446,11 +533,6 @@ exportAllGuestsButton.addEventListener("click", () => exportGuests("all"));
 exportAcceptedGuestsButton.addEventListener("click", () => exportGuests("accepted"));
 exportPresentGuestsButton.addEventListener("click", () => exportGuests("present"));
 exportDeclinedGuestsButton.addEventListener("click", () => exportGuests("declined"));
-
-eventIntroSelect.addEventListener("change", (e) => {
-  if (e.target.value === "custom") customIntroGroup.hidden = false;
-  else customIntroGroup.hidden = true;
-});
 
 copyPixButton.addEventListener("click", () => copyText(BUSINESS_CONFIG.pixKey, copyPixButton, "Copiar chave Pix"));
 closeQrModal.addEventListener("click", closeModal);
