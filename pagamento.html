@@ -12,13 +12,11 @@
 
   <title>Pagamento Pix | Confirmaê</title>
 
-  <meta
-    name="description"
-    content="Pague com Pix e envie o comprovante para liberar seu evento no Confirmaê."
-  />
+  <meta name="description" content="Pague com Pix e envie o comprovante para liberar seu evento no Confirmaê." />
 
   <link rel="icon" type="image/png" href="assets/img/confirmae-icon.png" />
   <link rel="apple-touch-icon" href="assets/img/confirmae-icon.png" />
+  
   <link rel="stylesheet" href="assets/css/style.css" />
   <link rel="stylesheet" href="assets/css/style-v2.css" />
 </head>
@@ -99,9 +97,7 @@
           </div>
         </div>
 
-        <p class="small-note">
-          Escaneie o QR Code usando o aplicativo do seu banco.
-        </p>
+        <p class="small-note">Escaneie o QR Code usando o aplicativo do seu banco.</p>
 
         <div class="payment-qr-box" id="pixQrCodeBox">
           <p class="small-note">Gerando QR Code...</p>
@@ -116,17 +112,9 @@
           </div>
         </div>
 
-        <p class="small-note">
-          Cole este código no app do seu banco, na opção "Pix copia e cola".
-        </p>
+        <p class="small-note">Cole este código no app do seu banco, na opção "Pix copia e cola".</p>
 
-        <textarea
-          id="pixCopyPaste"
-          class="pix-copy-textarea"
-          readonly
-          spellcheck="false"
-          aria-label="Código Pix copia e cola"
-        ></textarea>
+        <textarea id="pixCopyPaste" class="pix-copy-textarea" readonly spellcheck="false" aria-label="Código Pix copia e cola"></textarea>
 
         <button type="button" class="btn btn-secondary" id="copyPixButton">
           Copiar código Pix
@@ -171,22 +159,11 @@
         </ol>
 
         <div class="hero-actions">
-          <a
-            href="#"
-            class="btn btn-primary"
-            id="whatsappComprovanteLink"
-            target="_blank"
-            rel="noopener"
-          >
+          <a href="#" class="btn btn-primary" id="whatsappComprovanteLink" target="_blank" rel="noopener">
             Abrir WhatsApp para enviar comprovante
           </a>
 
-          <button
-            type="button"
-            class="btn btn-secondary"
-            id="shareComprovanteButton"
-            hidden
-          >
+          <button type="button" class="btn btn-secondary" id="shareComprovanteButton" hidden>
             Escolher comprovante
           </button>
 
@@ -205,25 +182,16 @@
         <p>Confirmaê é um sistema desenvolvido por Vidal Design Solutions.</p>
       </div>
 
-      <a
-        href="http://www.vidaldesignsolutions.com.br"
-        class="developer-badge"
-        target="_blank"
-        rel="noopener"
-        aria-label="Acessar site da Vidal Design Solutions"
-      >
+      <a href="http://www.vidaldesignsolutions.com.br" class="developer-badge" target="_blank" rel="noopener" aria-label="Acessar site da Vidal Design Solutions">
         <span>Desenvolvido por</span>
-        <img
-          src="assets/img/vidal-design-logo.png"
-          alt="Vidal Design Solutions"
-        />
+        <img src="assets/img/vidal-design-logo.png" alt="Vidal Design Solutions" />
       </a>
     </div>
   </footer>
 
   <script src="assets/js/theme.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script type="module" src="assets/js/alguma-coisa.js"></script>
-  <script src="assets/js/pwa.js?v=pwa-1"></script>
+  <script type="module" src="assets/js/pagamento.js"></script>
+  <script src="assets/js/pwa.js"></script>
 </body>
 </html>
