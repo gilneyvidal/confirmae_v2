@@ -5,7 +5,7 @@
    Carregado depois, sobrepõe apenas o que precisa.
    Se algo der errado, basta remover o <link> deste CSS.
 
-   v3: enquadramento e transparência otimizados para mobile.
+   v4: suporte a foto vertical (mobile) com fallback inteligente.
    ========================================================= */
 
 /* ─── 1. BACKGROUND GLOBAL (desktop + mobile) ─── */
@@ -34,17 +34,15 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   📱 MOBILE — ajustes para a foto aparecer de verdade
+   📱 MOBILE — Foto vertical e overlay ajustado
    ═══════════════════════════════════════════════════════════ */
 @media (max-width: 900px) {
   body {
     background-attachment: scroll;
-
-    /* Enquadra melhor: pega mais o "topo" da foto (ponto focal) */
     background-position: center 30%;
     background-size: cover;
-
-    /* Overlay MUITO mais leve: deixa a foto aparecer */
+    
+    /* Overlay mais leve + tenta puxar a foto mobile */
     background-image:
       radial-gradient(circle at top left, rgba(33, 189, 193, 0.10), transparent 45%),
       linear-gradient(180deg,
@@ -52,26 +50,10 @@ body {
         rgba(9, 11, 14, 0.72) 45%,
         rgba(9, 11, 14, 0.66) 100%
       ),
-      url("../img/background-event.jpg");
-  }
-
-  /* Bônus: se você tiver uma versão vertical (background-event-mobile.jpg),
-     este bloco abaixo usa ela automaticamente quando existir.
-     Se não existir, o navegador cai de volta na horizontal acima. */
-  @supports (background-image: image-set(url("x") 1x)) {
-    body {
-      background-image:
-        radial-gradient(circle at top left, rgba(33, 189, 193, 0.10), transparent 45%),
-        linear-gradient(180deg,
-          rgba(9, 11, 14, 0.58) 0%,
-          rgba(9, 11, 14, 0.72) 45%,
-          rgba(9, 11, 14, 0.66) 100%
-        ),
-        image-set(
-          url("../img/background-event-mobile.jpg") type("image/jpeg"),
-          url("../img/background-event.jpg") type("image/jpeg")
-        );
-    }
+      image-set(
+        url("../img/background-event-mobile.jpg") 1x type("image/jpeg"),
+        url("../img/background-event.jpg") 1x type("image/jpeg")
+      );
   }
 
   /* Text-shadow nos títulos principais: garante legibilidade
@@ -98,7 +80,7 @@ body {
 }
 
 /* Em telas MUITO pequenas (mobile pequeno), overlay um pouco mais forte
-   para garantir leitura (senão fica tudo "lavado") */
+   para garantir leitura */
 @media (max-width: 420px) {
   body {
     background-image:
@@ -108,7 +90,10 @@ body {
         rgba(9, 11, 14, 0.80) 45%,
         rgba(9, 11, 14, 0.75) 100%
       ),
-      url("../img/background-event.jpg");
+      image-set(
+        url("../img/background-event-mobile.jpg") 1x type("image/jpeg"),
+        url("../img/background-event.jpg") 1x type("image/jpeg")
+      );
   }
 }
 
@@ -332,12 +317,4 @@ textarea:focus {
   .stat-card:hover {
     transform: none !important;
   }
-}
-/* =========================================================
-   CORREÇÃO DE EMERGÊNCIA — força visibilidade
-   Pode remover depois que diagnosticarmos o problema real.
-   ========================================================= */
-.reveal-up {
-  opacity: 1 !important;
-  transform: none !important;
 }
