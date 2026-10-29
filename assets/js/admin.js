@@ -66,53 +66,70 @@ const qrCodeBox = document.getElementById("qrCodeBox");
 const copyQrLinkButton = document.getElementById("copyQrLinkButton");
 const downloadQrButton = document.getElementById("downloadQrButton");
 
+// NOVOS ELEMENTOS
+const pickContactButton = document.getElementById("pickContactButton");
+const guestCreatedModal = document.getElementById("guestCreatedModal");
+const closeGuestCreatedModal = document.getElementById("closeGuestCreatedModal");
+const createdGuestName = document.getElementById("createdGuestName");
+const sendWhatsappCreatedBtn = document.getElementById("sendWhatsappCreatedBtn");
+const copyCreatedLinkBtn = document.getElementById("copyCreatedLinkBtn");
+
 let currentEventId = getQueryParam("evento") || CONFIRMAE_THEME.defaultEventId;
 let currentQrLink = "";
 let currentQrGuestName = "";
 let currentEventInfo = null;
 let currentGuests = [];
+let lastCreatedGuest = null;
 
 eventIdInput.value = currentEventId;
 eventPanelPinInput.value = getQueryParam("pin") || "";
+
+// LOGICA API DE CONTATOS (ANDROID)
+if ('contacts' in navigator && 'ContactsManager' in window) {
+  pickContactButton.hidden = false;
+  pickContactButton.addEventListener("click", async () => {
+    try {
+      const props = ['name', 'tel'];
+      const opts = { multiple: false };
+      const contacts = await navigator.contacts.select(props, opts);
+      
+      if (contacts.length > 0) {
+        const contact = contacts[0];
+        if (contact.name && contact.name.length > 0) {
+          document.getElementById("guestNameInput").value = contact.name[0];
+        }
+        if (contact.tel && contact.tel.length > 0) {
+          document.getElementById("guestPhoneInput").value = contact.tel[0];
+        }
+      }
+    } catch (err) {
+      console.warn("Busca de contato cancelada ou não suportada.", err);
+    }
+  });
+}
 
 function getPanelStorageKey(eventId) {
   return `confirmae_panel_pin_${eventId}`;
 }
 
 function hideEventWorkspace() {
-  eventWorkspaceSections.forEach((section) => {
-    section.hidden = true;
-  });
+  eventWorkspaceSections.forEach((section) => { section.hidden = true; });
 }
 
 function showEventWorkspace() {
   accessLockedSection.hidden = true;
-
-  eventWorkspaceSections.forEach((section) => {
-    section.hidden = false;
-  });
+  eventWorkspaceSections.forEach((section) => { section.hidden = false; });
 }
 
 function setTableLoading(message) {
-  guestTableBody.innerHTML = `
-    <tr>
-      <td colspan="5">${escapeHtml(message)}</td>
-    </tr>
-  `;
+  guestTableBody.innerHTML = `<tr><td colspan="5">${escapeHtml(message)}</td></tr>`;
 }
 
 function isPanelPinValid(eventInfo) {
-  if (currentEventId === CONFIRMAE_THEME.defaultEventId) {
-    return true;
-  }
-
-  if (!eventInfo.panelPin) {
-    return true;
-  }
-
+  if (currentEventId === CONFIRMAE_THEME.defaultEventId) return true;
+  if (!eventInfo.panelPin) return true;
   const typedPin = eventPanelPinInput.value.trim();
   const storedPin = sessionStorage.getItem(getPanelStorageKey(currentEventId));
-
   return typedPin === eventInfo.panelPin || storedPin === eventInfo.panelPin;
 }
 
@@ -135,32 +152,20 @@ function showAccessLocked(eventId) {
   updateStats([]);
 }
 
-/**
- * Chamado quando o usuário digitou um PIN errado e tentou acessar.
- * Aqui SIM mostra alerta, porque é uma ação explícita.
- */
 function showPanelPinDenied() {
   accessLockedSection.hidden = true;
   hideEventWorkspace();
   updateStats([]);
-
   panelPinHelpText.textContent = "PIN incorreto. Confira o PIN enviado pelo WhatsApp e tente novamente.";
-
   eventPanelPinInput.value = "";
   eventPanelPinInput.focus();
-
   alert("PIN do painel incorreto.");
 }
 
-/**
- * Chamado quando a página abre e não há PIN disponível (nem digitado, nem
- * armazenado). Mostra mensagem amigável, SEM alerta.
- */
 function showPinRequiredMessage() {
   accessLockedSection.hidden = true;
   hideEventWorkspace();
   updateStats([]);
-
   panelPinHelpText.textContent = "Digite o PIN do painel para acessar o evento.";
   setTableLoading("Informe o ID do evento e o PIN do painel para carregar.");
 }
@@ -174,103 +179,52 @@ function updateStats(guests) {
 }
 
 function formatDateIsoToLongText(dateIso) {
-  if (!dateIso) {
-    return "";
-  }
-
+  if (!dateIso) return "";
   const [year, month, day] = String(dateIso).split("-").map(Number);
-
-  if (!year || !month || !day) {
-    return "";
-  }
-
+  if (!year || !month || !day) return "";
   const date = new Date(year, month - 1, day);
-
-  return date.toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric"
-  });
+  return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
 }
 
 function formatDateTimeForCsv(value) {
-  if (!value) {
-    return "";
-  }
-
+  if (!value) return "";
   const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return String(value);
-  }
-
+  if (Number.isNaN(date.getTime())) return String(value);
   return date.toLocaleString("pt-BR");
 }
 
 function sanitizeFileName(value) {
-  return String(value || "evento")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
+  return String(value || "evento").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
 
 function createCsvCell(value) {
   let safeValue = String(value ?? "");
-
-  if (/^[=+\-@]/.test(safeValue)) {
-    safeValue = `'${safeValue}`;
-  }
-
+  if (/^[=+\-@]/.test(safeValue)) safeValue = `'${safeValue}`;
   return `"${safeValue.replaceAll('"', '""')}"`;
 }
 
 function downloadCsv(filename, rows) {
-  const csvContent = rows
-    .map((row) => row.map(createCsvCell).join(";"))
-    .join("\n");
-
-  const blob = new Blob([`\ufeff${csvContent}`], {
-    type: "text/csv;charset=utf-8;"
-  });
-
+  const csvContent = rows.map((row) => row.map(createCsvCell).join(";")).join("\n");
+  const blob = new Blob([`\ufeff${csvContent}`], { type: "text/csv;charset=utf-8;" });
   const temporaryUrl = URL.createObjectURL(blob);
   const downloadLink = document.createElement("a");
-
   downloadLink.href = temporaryUrl;
   downloadLink.download = filename;
   document.body.appendChild(downloadLink);
   downloadLink.click();
   document.body.removeChild(downloadLink);
-
   URL.revokeObjectURL(temporaryUrl);
 }
 
 function getGuestsForExport(type) {
-  if (type === "accepted") {
-    return currentGuests.filter((guest) => guest.status === "accepted");
-  }
-
-  if (type === "present") {
-    return currentGuests.filter((guest) => guest.status === "present");
-  }
-
-  if (type === "declined") {
-    return currentGuests.filter((guest) => guest.status === "declined");
-  }
-
+  if (type === "accepted") return currentGuests.filter((guest) => guest.status === "accepted");
+  if (type === "present") return currentGuests.filter((guest) => guest.status === "present");
+  if (type === "declined") return currentGuests.filter((guest) => guest.status === "declined");
   return currentGuests;
 }
 
 function getExportLabel(type) {
-  const labels = {
-    all: "todos",
-    accepted: "confirmados",
-    present: "presentes",
-    declined: "recusados"
-  };
-
+  const labels = { all: "todos", accepted: "confirmados", present: "presentes", declined: "recusados" };
   return labels[type] || "convidados";
 }
 
@@ -283,24 +237,10 @@ function exportGuests(type) {
     return;
   }
 
-  const header = [
-    "Evento",
-    "ID do evento",
-    "Nome do convidado",
-    "Telefone",
-    "E-mail",
-    "Acompanhantes permitidos",
-    "Status",
-    "Presente com liberação manual",
-    "Data/hora de entrada",
-    "ID do convite",
-    "Link do convite"
-  ];
-
+  const header = ["Evento", "ID do evento", "Nome do convidado", "Telefone", "E-mail", "Acompanhantes permitidos", "Status", "Presente com liberação manual", "Data/hora de entrada", "ID do convite", "Link do convite"];
   const rows = guestsToExport.map((guest) => {
     const statusInfo = getGuestStatusInfo(guest);
     const invitationLink = buildInvitationLink(guest.eventId, guest.id);
-
     return [
       currentEventInfo?.name || currentEventId,
       currentEventId,
@@ -317,7 +257,6 @@ function exportGuests(type) {
   });
 
   const fileName = `confirmae-${sanitizeFileName(currentEventId)}-${exportLabel}.csv`;
-
   downloadCsv(fileName, [header, ...rows]);
 }
 
@@ -334,92 +273,57 @@ function renderEventConfig(eventInfo) {
 
 async function renderGuests() {
   setTableLoading("Carregando convidados do Firebase...");
-
   const guests = await getGuestsByEvent(currentEventId);
   currentGuests = guests;
-
   updateStats(guests);
 
   if (!guests.length) {
-    guestTableBody.innerHTML = `
-      <tr>
-        <td colspan="5">
-          Nenhum convidado cadastrado para este evento.
-        </td>
-      </tr>
-    `;
+    guestTableBody.innerHTML = `<tr><td colspan="5">Nenhum convidado cadastrado para este evento.</td></tr>`;
     return;
   }
 
-  guestTableBody.innerHTML = guests
-    .map((guest) => {
-      const statusInfo = getGuestStatusInfo(guest);
-      const invitationLink = buildInvitationLink(guest.eventId, guest.id);
-
-      return `
-        <tr>
-          <td>
-            <div class="guest-name-cell">
-              <strong>${escapeHtml(guest.name)}</strong>
-              <small>ID: ${escapeHtml(guest.id)}</small>
-            </div>
-          </td>
-
-          <td>
-            <div class="guest-contact-cell">
-              <strong>${escapeHtml(guest.phone || "Sem telefone")}</strong>
-              <small>${escapeHtml(guest.email || "Sem e-mail")}</small>
-            </div>
-          </td>
-
-          <td>
-            <span class="status-pill status-pill-${escapeHtml(statusInfo.className)}">
-              <span class="status-dot status-dot-${escapeHtml(statusInfo.className)}"></span>
-              ${escapeHtml(statusInfo.label)}
-            </span>
-          </td>
-
-          <td>
-            <div class="invitation-actions">
-              <button type="button" class="btn btn-secondary btn-small" data-action="copy-link" data-link="${escapeHtml(invitationLink)}">
-                Copiar link
-              </button>
-
-              <button type="button" class="btn btn-primary btn-small" data-action="show-qr" data-link="${escapeHtml(invitationLink)}" data-guest-name="${escapeHtml(guest.name)}">
-                Ver QR
-              </button>
-            </div>
-          </td>
-
-          <td>
-            <div class="table-actions">
-              <button type="button" class="btn btn-secondary btn-small" data-action="mark-waiting" data-guest-id="${escapeHtml(guest.id)}">
-                Enviado
-              </button>
-
-              <button type="button" class="btn btn-danger btn-small" data-action="remove" data-guest-id="${escapeHtml(guest.id)}">
-                Remover
-              </button>
-            </div>
-          </td>
-        </tr>
-      `;
-    })
-    .join("");
+  guestTableBody.innerHTML = guests.map((guest) => {
+    const statusInfo = getGuestStatusInfo(guest);
+    const invitationLink = buildInvitationLink(guest.eventId, guest.id);
+    return `
+      <tr>
+        <td>
+          <div class="guest-name-cell">
+            <strong>${escapeHtml(guest.name)}</strong>
+            <small>ID: ${escapeHtml(guest.id)}</small>
+          </div>
+        </td>
+        <td>
+          <div class="guest-contact-cell">
+            <strong>${escapeHtml(guest.phone || "Sem telefone")}</strong>
+            <small>${escapeHtml(guest.email || "Sem e-mail")}</small>
+          </div>
+        </td>
+        <td>
+          <span class="status-pill status-pill-${escapeHtml(statusInfo.className)}">
+            <span class="status-dot status-dot-${escapeHtml(statusInfo.className)}"></span>
+            ${escapeHtml(statusInfo.label)}
+          </span>
+        </td>
+        <td>
+          <div class="invitation-actions">
+            <button type="button" class="btn btn-secondary btn-small" data-action="copy-link" data-link="${escapeHtml(invitationLink)}">Copiar link</button>
+            <button type="button" class="btn btn-primary btn-small" data-action="show-qr" data-link="${escapeHtml(invitationLink)}" data-guest-name="${escapeHtml(guest.name)}">Ver QR</button>
+          </div>
+        </td>
+        <td>
+          <div class="table-actions">
+            <button type="button" class="btn btn-secondary btn-small" data-action="mark-waiting" data-guest-id="${escapeHtml(guest.id)}">Enviado</button>
+            <button type="button" class="btn btn-danger btn-small" data-action="remove" data-guest-id="${escapeHtml(guest.id)}">Remover</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
 }
 
-/**
- * Carrega o evento atual.
- *
- * @param {Object} options
- * @param {boolean} options.silent - Se `true`, é um carregamento automático
- *   (na abertura da página). Quando o PIN não estiver disponível, mostra uma
- *   mensagem amigável em vez de alerta. Se `false` (clique do usuário), mostra
- *   o alerta de PIN incorreto.
- */
 async function loadCurrentEvent(options = {}) {
   const { silent = false } = options;
-
   currentEventId = eventIdInput.value.trim() || CONFIRMAE_THEME.defaultEventId;
   eventIdInput.value = currentEventId;
 
@@ -437,26 +341,20 @@ async function loadCurrentEvent(options = {}) {
     }
 
     if (!isPanelPinValid(eventInfo)) {
-      if (silent) {
-        showPinRequiredMessage();
-      } else {
-        showPanelPinDenied();
-      }
+      if (silent) showPinRequiredMessage();
+      else showPanelPinDenied();
       return;
     }
 
     rememberPanelPin(eventInfo);
     panelPinHelpText.textContent = "Acesso liberado para este evento.";
-
     renderEventConfig(eventInfo);
     await renderGuests();
     showEventWorkspace();
   } catch (error) {
     console.error(error);
-
-    if (error.code === "event-not-released") {
-      showAccessLocked(currentEventId);
-    } else {
+    if (error.code === "event-not-released") showAccessLocked(currentEventId);
+    else {
       alert("Não foi possível carregar o evento. Confira o Firebase e tente novamente.");
       showAccessLocked(currentEventId);
     }
@@ -469,26 +367,15 @@ async function loadCurrentEvent(options = {}) {
 function openQrModal(guestName, invitationLink) {
   currentQrLink = invitationLink;
   currentQrGuestName = guestName;
-
   qrGuestInitial.textContent = getInitials(guestName);
   qrGuestName.textContent = guestName;
   qrGuestLink.textContent = invitationLink;
-
   qrCodeBox.innerHTML = "";
 
   if (typeof QRCode === "undefined") {
-    qrCodeBox.innerHTML = `
-      <p>Não foi possível carregar o gerador de QR Code. Atualize a página e tente novamente.</p>
-    `;
+    qrCodeBox.innerHTML = `<p>Não foi possível carregar o gerador de QR Code. Atualize a página.</p>`;
   } else {
-    new QRCode(qrCodeBox, {
-      text: invitationLink,
-      width: 220,
-      height: 220,
-      colorDark: "#221b35",
-      colorLight: "#ffffff",
-      correctLevel: QRCode.CorrectLevel.H
-    });
+    new QRCode(qrCodeBox, { text: invitationLink, width: 220, height: 220, colorDark: "#221b35", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
   }
 
   qrModal.classList.add("is-open");
@@ -506,27 +393,14 @@ function closeModal() {
 function downloadCurrentQrCode() {
   const canvas = qrCodeBox.querySelector("canvas");
   const image = qrCodeBox.querySelector("img");
-
-  let imageUrl = "";
-
-  if (canvas) {
-    imageUrl = canvas.toDataURL("image/png");
-  } else if (image) {
-    imageUrl = image.src;
-  }
+  let imageUrl = canvas ? canvas.toDataURL("image/png") : (image ? image.src : "");
 
   if (!imageUrl) {
     alert("Não foi possível baixar o QR Code. Gere o QR novamente.");
     return;
   }
 
-  const safeGuestName = String(currentQrGuestName || "convidado")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-
+  const safeGuestName = String(currentQrGuestName || "convidado").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
   const downloadLink = document.createElement("a");
   downloadLink.href = imageUrl;
   downloadLink.download = `qrcode-${safeGuestName || "convidado"}.png`;
@@ -536,22 +410,15 @@ function downloadCurrentQrCode() {
 async function copyTextToClipboard(text, successButton = null, defaultText = "") {
   try {
     await navigator.clipboard.writeText(text);
-
     if (successButton) {
       successButton.textContent = "Copiado!";
-
-      setTimeout(() => {
-        successButton.textContent = defaultText;
-      }, 1400);
+      setTimeout(() => { successButton.textContent = defaultText; }, 1400);
     }
-  } catch (error) {
-    alert(`Copie manualmente:\n${text}`);
-  }
+  } catch (error) { alert(`Copie manualmente:\n${text}`); }
 }
 
 async function handleEventConfigSubmit(event) {
   event.preventDefault();
-
   const submitButton = eventConfigForm.querySelector("button[type='submit']");
   submitButton.disabled = true;
   submitButton.textContent = "Salvando...";
@@ -570,9 +437,7 @@ async function handleEventConfigSubmit(event) {
       location: eventLocationInput.value.trim(),
       intro: eventIntroInput.value.trim()
     });
-
     alert("Dados do evento salvos com sucesso!");
-
     await loadCurrentEvent({ silent: true });
   } catch (error) {
     console.error(error);
@@ -585,29 +450,16 @@ async function handleEventConfigSubmit(event) {
 
 async function handleGuestFormSubmit(event) {
   event.preventDefault();
-
   const nameInput = document.getElementById("guestNameInput");
   const phoneInput = document.getElementById("guestPhoneInput");
   const emailInput = document.getElementById("guestEmailInput");
   const companionsInput = document.getElementById("guestCompanionsInput");
-
   const name = nameInput.value.trim();
 
-  if (!name) {
-    alert("Informe o nome do convidado.");
-    return;
-  }
+  if (!name) { alert("Informe o nome do convidado."); return; }
 
-  if (
-    currentEventId !== CONFIRMAE_THEME.defaultEventId &&
-    currentEventInfo &&
-    currentEventInfo.guestLimit !== null &&
-    currentEventInfo.guestLimit !== undefined &&
-    currentGuests.length >= Number(currentEventInfo.guestLimit)
-  ) {
-    alert(
-      `Seu plano permite até ${currentEventInfo.guestLimit} convidados.\n\nPara cadastrar mais pessoas, solicite upgrade pelo WhatsApp.`
-    );
+  if (currentEventId !== CONFIRMAE_THEME.defaultEventId && currentEventInfo && currentEventInfo.guestLimit !== null && currentEventInfo.guestLimit !== undefined && currentGuests.length >= Number(currentEventInfo.guestLimit)) {
+    alert(`Seu plano permite até ${currentEventInfo.guestLimit} convidados.\n\nPara cadastrar mais pessoas, solicite upgrade pelo WhatsApp.`);
     return;
   }
 
@@ -626,19 +478,30 @@ async function handleGuestFormSubmit(event) {
 
     guestForm.reset();
     companionsInput.value = 0;
-
     await renderGuests();
 
+    // LOGICA DO NOVO MODAL DE ENVIO
+    lastCreatedGuest = newGuest;
+    createdGuestName.textContent = newGuest.name;
+    
     const invitationLink = buildInvitationLink(newGuest.eventId, newGuest.id);
+    const waMessage = encodeURIComponent(`Olá, ${newGuest.name}! Você está convidado(a) para o evento "${currentEventInfo.name}". Por favor, confirme sua presença pelo link abaixo:\n\n${invitationLink}`);
+    
+    sendWhatsappCreatedBtn.onclick = () => {
+      window.open(`https://wa.me/?text=${waMessage}`, "_blank");
+    };
 
-    alert(`Convite criado com sucesso!\n\nLink do convite:\n${invitationLink}`);
+    copyCreatedLinkBtn.onclick = () => {
+      copyTextToClipboard(invitationLink, copyCreatedLinkBtn, "Copiar link do convite");
+    };
+
+    guestCreatedModal.classList.add("is-open");
+    guestCreatedModal.setAttribute("aria-hidden", "false");
+
   } catch (error) {
     console.error(error);
-
     if (error.code === "guest-limit-reached") {
-      alert(
-        `Seu plano permite até ${error.limit} convidados.\n\nPara cadastrar mais pessoas, solicite upgrade pelo WhatsApp.`
-      );
+      alert(`Seu plano permite até ${error.limit} convidados.\n\nPara cadastrar mais pessoas, solicite upgrade pelo WhatsApp.`);
     } else {
       alert("Não foi possível criar o convite. Confira o Firebase e tente novamente.");
     }
@@ -650,54 +513,36 @@ async function handleGuestFormSubmit(event) {
 
 async function handleTableClick(event) {
   const clickedButton = event.target.closest("button");
-
-  if (!clickedButton) {
-    return;
-  }
+  if (!clickedButton) return;
 
   const action = clickedButton.dataset.action;
   const guestId = clickedButton.dataset.guestId;
 
   if (action === "copy-link") {
-    const link = clickedButton.dataset.link;
-    await copyTextToClipboard(link, clickedButton, "Copiar link");
+    await copyTextToClipboard(clickedButton.dataset.link, clickedButton, "Copiar link");
     return;
   }
 
   if (action === "show-qr") {
-    const link = clickedButton.dataset.link;
-    const guestName = clickedButton.dataset.guestName;
-
-    openQrModal(guestName, link);
+    openQrModal(clickedButton.dataset.guestName, clickedButton.dataset.link);
     return;
   }
 
   if (action === "mark-waiting") {
     clickedButton.disabled = true;
     clickedButton.textContent = "Salvando...";
-
     try {
-      await updateGuest(currentEventId, guestId, {
-        status: "waiting",
-        gateOverride: false
-      });
-
+      await updateGuest(currentEventId, guestId, { status: "waiting", gateOverride: false });
       await renderGuests();
     } catch (error) {
       console.error(error);
       alert("Não foi possível atualizar o status.");
     }
-
     return;
   }
 
   if (action === "remove") {
-    const confirmRemoval = confirm("Tem certeza que deseja remover este convidado?");
-
-    if (!confirmRemoval) {
-      return;
-    }
-
+    if (!confirm("Tem certeza que deseja remover este convidado?")) return;
     try {
       await removeGuest(currentEventId, guestId);
       await renderGuests();
@@ -709,23 +554,13 @@ async function handleTableClick(event) {
 }
 
 async function handleResetDemo() {
-  const confirmReset = confirm(
-    "Isso vai restaurar os convidados de demonstração no Firebase. Os dados personalizados do evento serão mantidos. Deseja continuar?"
-  );
-
-  if (!confirmReset) {
-    return;
-  }
-
+  if (!confirm("Isso vai restaurar os convidados de demonstração no Firebase. Os dados personalizados do evento serão mantidos. Deseja continuar?")) return;
   resetDemoButton.disabled = true;
   resetDemoButton.textContent = "Restaurando...";
-
   try {
     await resetDemoGuests();
-
     currentEventId = CONFIRMAE_THEME.defaultEventId;
     eventIdInput.value = currentEventId;
-
     await loadCurrentEvent({ silent: true });
   } catch (error) {
     console.error(error);
@@ -739,73 +574,52 @@ async function handleResetDemo() {
 eventConfigForm.addEventListener("submit", handleEventConfigSubmit);
 guestForm.addEventListener("submit", handleGuestFormSubmit);
 guestTableBody.addEventListener("click", handleTableClick);
-
-loadEventButton.addEventListener("click", () => {
-  loadCurrentEvent({ silent: false });
-});
-
+loadEventButton.addEventListener("click", () => loadCurrentEvent({ silent: false }));
 resetDemoButton.addEventListener("click", handleResetDemo);
-
 exportAllGuestsButton.addEventListener("click", () => exportGuests("all"));
 exportAcceptedGuestsButton.addEventListener("click", () => exportGuests("accepted"));
 exportPresentGuestsButton.addEventListener("click", () => exportGuests("present"));
 exportDeclinedGuestsButton.addEventListener("click", () => exportGuests("declined"));
 
 eventDateIsoInput.addEventListener("change", () => {
-  if (!eventDateInput.value.trim()) {
-    eventDateInput.value = formatDateIsoToLongText(eventDateIsoInput.value);
-  }
+  if (!eventDateInput.value.trim()) eventDateInput.value = formatDateIsoToLongText(eventDateIsoInput.value);
 });
 
-copyPixButton.addEventListener("click", () => {
-  copyTextToClipboard(BUSINESS_CONFIG.pixKey, copyPixButton, "Copiar chave Pix");
-});
+copyPixButton.addEventListener("click", () => copyTextToClipboard(BUSINESS_CONFIG.pixKey, copyPixButton, "Copiar chave Pix"));
 
 closeQrModal.addEventListener("click", closeModal);
-
-qrModal.addEventListener("click", (event) => {
-  if (event.target === qrModal) {
-    closeModal();
-  }
-});
-
-copyQrLinkButton.addEventListener("click", () => {
-  copyTextToClipboard(currentQrLink, copyQrLinkButton, "Copiar link");
-});
-
+qrModal.addEventListener("click", (event) => { if (event.target === qrModal) closeModal(); });
+copyQrLinkButton.addEventListener("click", () => copyTextToClipboard(currentQrLink, copyQrLinkButton, "Copiar link"));
 downloadQrButton.addEventListener("click", downloadCurrentQrCode);
 
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && qrModal.classList.contains("is-open")) {
-    closeModal();
+// Fechar o novo modal
+closeGuestCreatedModal.addEventListener("click", () => {
+  guestCreatedModal.classList.remove("is-open");
+  guestCreatedModal.setAttribute("aria-hidden", "true");
+});
+guestCreatedModal.addEventListener("click", (event) => {
+  if (event.target === guestCreatedModal) {
+    guestCreatedModal.classList.remove("is-open");
+    guestCreatedModal.setAttribute("aria-hidden", "true");
   }
 });
 
-/* ================================================================
-   CARREGAMENTO INICIAL INTELIGENTE
-   ================================================================
-   Só tenta carregar automaticamente se:
-   - o evento for o demo (sem PIN), OU
-   - o PIN já estiver digitado no campo, OU
-   - o PIN já estiver salvo em sessionStorage (mesma sessão).
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    if (qrModal.classList.contains("is-open")) closeModal();
+    if (guestCreatedModal.classList.contains("is-open")) {
+      guestCreatedModal.classList.remove("is-open");
+      guestCreatedModal.setAttribute("aria-hidden", "true");
+    }
+  }
+});
 
-   Caso contrário, mostra mensagem amigável pedindo o PIN.
-*/
 hideEventWorkspace();
-
 (function tryInitialLoad() {
   const initialEventId = eventIdInput.value.trim() || CONFIRMAE_THEME.defaultEventId;
   const pinInInput = eventPanelPinInput.value.trim();
   const pinInStorage = sessionStorage.getItem(getPanelStorageKey(initialEventId));
-
-  const canAutoLoad =
-    initialEventId === CONFIRMAE_THEME.defaultEventId ||
-    Boolean(pinInInput) ||
-    Boolean(pinInStorage);
-
-  if (canAutoLoad) {
-    loadCurrentEvent({ silent: true });
-  } else {
-    showPinRequiredMessage();
-  }
+  const canAutoLoad = initialEventId === CONFIRMAE_THEME.defaultEventId || Boolean(pinInInput) || Boolean(pinInStorage);
+  if (canAutoLoad) loadCurrentEvent({ silent: true });
+  else showPinRequiredMessage();
 })();
