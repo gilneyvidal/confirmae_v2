@@ -1,18 +1,15 @@
 /* =========================================================
    Confirmaê v2 · Camada de fluidez + foto de fundo GLOBAL
    =========================================================
-   v6: Correção do "zoom" do fundo no mobile usando body::before.
-   Correção de layout do formulário (selects e inputs).
-   Deixando o layout mais largo no celular.
+   v7: Estilos para o novo modal de envio e ajustes de botões mobile.
    ========================================================= */
 
 /* ─── 1. BACKGROUND GLOBAL (A prova de bugs de mobile) ─── */
 body {
-  background-color: #090b0e; /* Cor de fundo base */
+  background-color: #090b0e;
   animation: v2PageFadeIn 0.42s ease both;
 }
 
-/* Usar um elemento "fantasma" fixo para o fundo evita o zoom no mobile */
 body::before {
   content: "";
   position: fixed;
@@ -21,76 +18,50 @@ body::before {
   width: 100%;
   height: 100%;
   z-index: -1;
-  pointer-events: none; /* Permite clicar nos botões normalmente */
-  
+  pointer-events: none;
   background-image:
     radial-gradient(circle at top left, rgba(33, 189, 193, 0.20), transparent 42%),
     radial-gradient(circle at bottom right, rgba(94, 97, 104, 0.16), transparent 38%),
-    linear-gradient(180deg,
-      rgba(9, 11, 14, 0.82) 0%,
-      rgba(9, 11, 14, 0.90) 45%,
-      rgba(9, 11, 14, 0.88) 100%
-    ),
+    linear-gradient(180deg, rgba(9, 11, 14, 0.82) 0%, rgba(9, 11, 14, 0.90) 45%, rgba(9, 11, 14, 0.88) 100%),
     url("../img/background-event.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
 }
 
-/* Desktop: fundo "preso" (parallax suave) */
 @media (min-width: 901px) {
-  body::before {
-    background-attachment: fixed;
-  }
+  body::before { background-attachment: fixed; }
 }
 
-/* ═══════════════════════════════════════════════════════════
-   📱 MOBILE — Foto vertical e overlay ajustado
-   ═══════════════════════════════════════════════════════════ */
 @media (max-width: 900px) {
   body::before {
     background-position: center 30%;
-    
-    /* Overlay mais leve + tenta puxar a foto mobile */
     background-image:
       radial-gradient(circle at top left, rgba(33, 189, 193, 0.10), transparent 45%),
-      linear-gradient(180deg,
-        rgba(9, 11, 14, 0.58) 0%,
-        rgba(9, 11, 14, 0.72) 45%,
-        rgba(9, 11, 14, 0.66) 100%
-      ),
+      linear-gradient(180deg, rgba(9, 11, 14, 0.58) 0%, rgba(9, 11, 14, 0.72) 45%, rgba(9, 11, 14, 0.66) 100%),
       image-set(
         url("../img/background-event-mobile.jpg") 1x type("image/jpeg"),
         url("../img/background-event.jpg") 1x type("image/jpeg")
       );
   }
 
-  /* Text-shadow nos títulos principais para legibilidade */
-  h1, h2, .hero-content h1, .dashboard-header h1, 
-  .section-heading h2, .panel-heading h2, .invitation-cover h1 {
+  h1, h2, .hero-content h1, .dashboard-header h1, .section-heading h2, .panel-heading h2, .invitation-cover h1 {
     text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55), 0 1px 4px rgba(0, 0, 0, 0.4);
   }
-
-  .hero-content p, .dashboard-header p, 
-  .section-heading p, .invitation-cover p {
+  .hero-content p, .dashboard-header p, .section-heading p, .invitation-cover p {
     text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
   }
 }
 
-@keyframes v2PageFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+@keyframes v2PageFadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* ─── 2. HEADER com efeito "vidro" ─── */
+/* ─── 2. HEADER E FOOTER ─── */
 .site-header {
   background: rgba(9, 11, 14, 0.78);
   backdrop-filter: blur(20px) saturate(1.15);
   -webkit-backdrop-filter: blur(20px) saturate(1.15);
   border-bottom: 1px solid rgba(33, 189, 193, 0.14);
 }
-
-/* ─── 3. FOOTER integrado ao fundo ─── */
 .site-footer {
   background: rgba(9, 11, 14, 0.55);
   backdrop-filter: blur(10px);
@@ -98,120 +69,36 @@ body::before {
   border-top: 1px solid rgba(33, 189, 193, 0.12);
 }
 
-/* ─── 4. HERO da home ─── */
-.hero-section {
-  position: relative;
-  background: radial-gradient(circle at top left, rgba(33, 189, 193, 0.10), transparent 42%);
-  overflow: hidden;
-}
+/* ─── 3. CARDS ─── */
+.hero-section, .final-cta-section { position: relative; overflow: hidden; }
+.hero-section { background: radial-gradient(circle at top left, rgba(33, 189, 193, 0.10), transparent 42%); }
+.final-cta-section { background: radial-gradient(circle at bottom right, rgba(33, 189, 193, 0.10), transparent 42%); }
 
-/* ─── 5. CTA final da home ─── */
-.final-cta-section {
-  position: relative;
-  background: radial-gradient(circle at bottom right, rgba(33, 189, 193, 0.10), transparent 42%);
-  overflow: hidden;
-}
-
-/* ─── 6. Cards mais opacos para legibilidade sobre a foto ─── */
-.panel-card, .feature-card, .pricing-card, .stat-card, 
-.event-type-card, .event-selector-card {
+.panel-card, .feature-card, .pricing-card, .stat-card, .event-type-card, .event-selector-card {
   background: rgba(21, 26, 32, 0.94);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.28s ease, box-shadow 0.28s ease, background 0.28s ease;
 }
 
-/* ─── 7. Indicador animado no menu ─── */
-.main-nav a {
-  position: relative;
-}
-
-.main-nav a::after {
-  content: "";
-  position: absolute;
-  bottom: 4px;
-  left: 14px;
-  right: 14px;
-  height: 2px;
-  background: var(--color-primary);
-  border-radius: 2px;
-  transform: scaleX(0);
-  transform-origin: center;
-  transition: transform 0.24s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.main-nav a:hover::after {
-  transform: scaleX(1);
-}
-
-/* ─── 8. Cards com hover mais elegante ─── */
-.panel-card, .feature-card, .pricing-card, .stat-card, 
-.event-type-card, .system-showcase-card {
-  transition:
-    transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 0.28s ease,
-    box-shadow 0.28s ease,
-    background 0.28s ease;
-}
-
-.panel-card:hover, .feature-card:hover, 
-.pricing-card:hover, .stat-card:hover {
+.panel-card:hover, .feature-card:hover, .pricing-card:hover, .stat-card:hover {
   transform: translateY(-4px) scale(1.005);
   border-color: rgba(33, 189, 193, 0.42);
-  box-shadow:
-    0 22px 52px rgba(0, 0, 0, 0.34),
-    0 0 32px rgba(33, 189, 193, 0.10);
+  box-shadow: 0 22px 52px rgba(0, 0, 0, 0.34), 0 0 32px rgba(33, 189, 193, 0.10);
 }
 
-/* ─── 9. Ripple nos botões ─── */
-.btn {
-  position: relative;
-  overflow: hidden;
-  transition:
-    transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.22s ease,
-    background 0.22s ease;
+/* ─── 4. BOTOES E INPUTS ─── */
+.main-nav a { position: relative; }
+.main-nav a::after {
+  content: ""; position: absolute; bottom: 4px; left: 14px; right: 14px; height: 2px; background: var(--color-primary); border-radius: 2px; transform: scaleX(0); transform-origin: center; transition: transform 0.24s cubic-bezier(0.4, 0, 0.2, 1);
 }
+.main-nav a:hover::after { transform: scaleX(1); }
 
-.btn::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  background: rgba(255, 255, 255, 0.18);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  transition: width 0.55s ease, height 0.55s ease;
-  pointer-events: none;
-}
+.btn { position: relative; overflow: hidden; transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s ease, background 0.22s ease; }
+.btn::before { content: ""; position: absolute; top: 50%; left: 50%; width: 0; height: 0; background: rgba(255, 255, 255, 0.18); border-radius: 50%; transform: translate(-50%, -50%); transition: width 0.55s ease, height 0.55s ease; pointer-events: none; }
+.btn:active::before { width: 320px; height: 320px; }
+.btn:active { transform: translateY(-1px) scale(0.98); }
 
-.btn:active::before {
-  width: 320px;
-  height: 320px;
-}
-
-.btn:active {
-  transform: translateY(-1px) scale(0.98);
-}
-
-/* ─── 10. Modal com blur + slide-up ─── */
-.modal-overlay {
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  transition: opacity 0.28s ease;
-}
-
-.modal-card {
-  animation: v2ModalSlideUp 0.34s cubic-bezier(0.4, 0, 0.2, 1) both;
-}
-
-@keyframes v2ModalSlideUp {
-  from { opacity: 0; transform: translateY(32px) scale(0.97); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-/* ─── 11. Estilo Global de Input e SELECT (Correção do fundo branco) ─── */
 input:focus, select:focus, textarea:focus {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 4px rgba(33, 189, 193, 0.13), 0 0 22px rgba(33, 189, 193, 0.10);
@@ -220,114 +107,40 @@ input:focus, select:focus, textarea:focus {
 }
 
 select {
-  width: 100%;
-  min-height: 46px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: 0 14px;
-  color: var(--color-text);
-  background: #0D1014; /* Fundo escuro igual aos inputs */
-  outline: none;
-  font-family: inherit;
-  font-size: 1rem;
-  appearance: none; /* Remove a seta padrão feia do navegador */
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  /* Adiciona uma setinha elegante em SVG */
+  width: 100%; min-height: 46px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 0 14px; color: var(--color-text); background: #0D1014; outline: none; font-family: inherit; font-size: 1rem; appearance: none; -webkit-appearance: none; -moz-appearance: none;
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ACADB3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 14px center;
-  background-size: 16px;
+  background-repeat: no-repeat; background-position: right 14px center; background-size: 16px;
 }
 
-/* ─── 12. Stat cards ─── */
-.stat-card strong {
-  transition: color 0.3s ease, transform 0.3s ease;
-  display: inline-block;
+/* ─── 5. MODAIS ─── */
+.modal-overlay {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: opacity 0.28s ease;
 }
+.modal-card { animation: v2ModalSlideUp 0.34s cubic-bezier(0.4, 0, 0.2, 1) both; }
+@keyframes v2ModalSlideUp { from { opacity: 0; transform: translateY(32px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
-.stat-card:hover strong {
-  color: var(--color-primary);
-  transform: scale(1.04);
-}
+/* ─── 6. DEMAIS ELEMENTOS ─── */
+.stat-card strong { transition: color 0.3s ease, transform 0.3s ease; display: inline-block; }
+.stat-card:hover strong { color: var(--color-primary); transform: scale(1.04); }
+.developer-badge { transition: transform 0.24s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.24s ease, background 0.24s ease, box-shadow 0.24s ease; }
+.site-header .brand { transition: opacity 0.24s ease, transform 0.24s ease; }
+.site-header .brand:hover { opacity: 0.94; transform: translateY(-1px); }
+.guest-table tr { transition: background 0.22s ease; }
+.guest-table tbody tr:hover { background: rgba(33, 189, 193, 0.05); }
 
-/* ─── 13. Badge do rodapé ─── */
-.developer-badge {
-  transition: transform 0.24s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.24s ease, background 0.24s ease, box-shadow 0.24s ease;
-}
-
-/* ─── 14. Brand do header ─── */
-.site-header .brand {
-  transition: opacity 0.24s ease, transform 0.24s ease;
-}
-
-.site-header .brand:hover {
-  opacity: 0.94;
-  transform: translateY(-1px);
-}
-
-/* ─── 15. Tabela fluida ─── */
-.guest-table tr {
-  transition: background 0.22s ease;
-}
-
-.guest-table tbody tr:hover {
-  background: rgba(33, 189, 193, 0.05);
-}
-
-/* ═══════════════════════════════════════════════════════════
-   📱 CORREÇÃO DE LARGURA NO MOBILE (Tirando o "estreito")
-   ═══════════════════════════════════════════════════════════ */
+/* ─── 7. MOBILE RESPONSIVO ─── */
 @media (max-width: 768px) {
-  /* Aumenta a área útil da tela, diminuindo a margem lateral */
-  .container {
-    width: calc(100% - 16px) !important;
-    padding: 0 !important;
-    overflow-x: hidden;
-  }
-
-  /* O card ocupa 100% do container e diminui um pouco o padding interno */
-  .panel-card, .guest-form {
-    padding: 16px !important;
-    width: 100% !important;
-    box-sizing: border-box;
-  }
-  
-  /* Inputs ocupam o espaço todo */
-  .guest-form input, 
-  .guest-form select, 
-  .guest-form textarea {
-    width: 100% !important;
-    box-sizing: border-box;
-    font-size: 16px; /* Evita zoom no iOS */
-  }
-
-  /* Empilha o título e o botão Sair */
-  .panel-heading {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-  
-  /* Empilha os botões de ação */
-  .hero-actions {
-    margin-top: 16px;
-    flex-direction: column;
-    width: 100%;
-  }
-  
-  .hero-actions .btn {
-    width: 100%;
-  }
+  .container { width: calc(100% - 16px) !important; padding: 0 !important; overflow-x: hidden; }
+  .panel-card, .guest-form { padding: 16px !important; width: 100% !important; box-sizing: border-box; }
+  .guest-form input, .guest-form select, .guest-form textarea { width: 100% !important; box-sizing: border-box; font-size: 16px; }
+  .panel-heading { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .hero-actions { margin-top: 16px; flex-direction: column; width: 100%; }
+  .hero-actions .btn { width: 100%; }
 }
 
-/* ─── 16. Respeito a quem prefere sem animação ─── */
 @media (prefers-reduced-motion: reduce) {
-  body, .btn, .panel-card, .feature-card, .pricing-card, .stat-card, .modal-card {
-    animation: none !important;
-    transition: none !important;
-  }
-  .panel-card:hover, .feature-card:hover, .pricing-card:hover, .stat-card:hover {
-    transform: none !important;
-  }
+  body, .btn, .panel-card, .feature-card, .pricing-card, .stat-card, .modal-card { animation: none !important; transition: none !important; }
+  .panel-card:hover, .feature-card:hover, .pricing-card:hover, .stat-card:hover { transform: none !important; }
 }
