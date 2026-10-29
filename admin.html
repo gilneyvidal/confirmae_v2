@@ -11,10 +11,7 @@
 
   <title>Painel do Anfitrião | Confirmaê</title>
 
-  <meta
-    name="description"
-    content="Painel do anfitrião para personalizar eventos, gerenciar convidados, links individuais, QR Codes e status de confirmação."
-  />
+  <meta name="description" content="Painel do anfitrião para personalizar eventos, gerenciar convidados, links individuais, QR Codes e status de confirmação." />
 
   <link rel="icon" type="image/png" href="assets/img/confirmae-icon.png" />
   <link rel="apple-touch-icon" href="assets/img/confirmae-icon.png" />
@@ -171,9 +168,7 @@
             <label for="eventIntroInput">Mensagem do convite</label>
             <input type="text" id="eventIntroInput" placeholder="Ex: Você está recebendo este convite especial..." required />
           </div>
-          <button type="submit" class="btn btn-primary">
-            Salvar dados do evento
-          </button>
+          <button type="submit" class="btn btn-primary">Salvar dados do evento</button>
         </form>
       </article>
     </section>
@@ -188,6 +183,11 @@
         </div>
 
         <form class="guest-form" id="guestForm">
+          <!-- NOVO BOTÃO CONTACT PICKER -->
+          <button type="button" class="btn btn-secondary" id="pickContactButton" hidden style="margin-bottom: 8px; border: 1px dashed var(--color-primary); background: rgba(33,189,193,0.05);">
+            📱 Buscar contato da agenda
+          </button>
+
           <div class="form-group">
             <label for="guestNameInput">Nome do convidado</label>
             <input type="text" id="guestNameInput" placeholder="Ex: Maria Oliveira" required />
@@ -204,9 +204,7 @@
             <label for="guestCompanionsInput">Acompanhantes permitidos</label>
             <input type="number" id="guestCompanionsInput" min="0" value="0" />
           </div>
-          <button type="submit" class="btn btn-primary">
-            Criar convite
-          </button>
+          <button type="submit" class="btn btn-primary">Criar convite</button>
         </form>
       </article>
 
@@ -246,6 +244,7 @@
     </section>
   </main>
 
+  <!-- MODAL DE QR CODE (JÁ EXISTENTE) -->
   <div class="modal-overlay" id="qrModal" aria-hidden="true">
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="qrModalTitle">
       <div class="modal-header">
@@ -275,20 +274,40 @@
     </div>
   </div>
 
+  <!-- NOVO MODAL: CONVITE CRIADO -->
+  <div class="modal-overlay" id="guestCreatedModal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div>
+          <span class="eyebrow">Sucesso!</span>
+          <h2>Convite Criado</h2>
+        </div>
+        <button type="button" class="modal-close" id="closeGuestCreatedModal" aria-label="Fechar modal">×</button>
+      </div>
+
+      <div class="qr-modal-body" style="text-align: center;">
+        <p>O convite de <strong id="createdGuestName">Convidado</strong> foi gerado com sucesso.</p>
+        <p class="small-note">Deseja enviar agora para o convidado?</p>
+        
+        <div class="hero-actions" style="margin-top: 24px; flex-direction: column;">
+          <button type="button" class="btn btn-primary" id="sendWhatsappCreatedBtn">
+            Abrir WhatsApp para enviar
+          </button>
+          <button type="button" class="btn btn-secondary" id="copyCreatedLinkBtn">
+            Copiar link do convite
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <footer class="site-footer">
     <div class="container footer-content footer-content-branded">
       <div class="footer-brand-note">
         <p>© 2026 Confirmaê.</p>
         <p>Confirmaê é um sistema desenvolvido por Vidal Design Solutions.</p>
       </div>
-
-      <a
-        href="http://www.vidaldesignsolutions.com.br"
-        class="developer-badge"
-        target="_blank"
-        rel="noopener"
-        aria-label="Acessar site da Vidal Design Solutions"
-      >
+      <a href="http://www.vidaldesignsolutions.com.br" class="developer-badge" target="_blank" rel="noopener" aria-label="Acessar site da Vidal Design Solutions">
         <span>Desenvolvido por</span>
         <img src="assets/img/vidal-design-logo.png" alt="Vidal Design Solutions" />
       </a>
