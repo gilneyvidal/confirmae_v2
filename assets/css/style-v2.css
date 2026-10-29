@@ -5,11 +5,10 @@
    Carregado depois, sobrepõe apenas o que precisa.
    Se algo der errado, basta remover o <link> deste CSS.
 
-   ⚡ NOVO (v2): o background agora é aplicado no <body>,
-   afetando automaticamente TODAS as páginas.
+   v3: enquadramento e transparência otimizados para mobile.
    ========================================================= */
 
-/* ─── 1. BACKGROUND GLOBAL (aplica em todas as páginas) ─── */
+/* ─── 1. BACKGROUND GLOBAL (desktop + mobile) ─── */
 body {
   background-image:
     radial-gradient(circle at top left, rgba(33, 189, 193, 0.20), transparent 42%),
@@ -24,22 +23,92 @@ body {
   background-position: center;
   background-repeat: no-repeat;
 
-  /* Fade-in suave ao carregar a página */
   animation: v2PageFadeIn 0.42s ease both;
 }
 
-/* Em desktop, o fundo fica "preso" (parallax suave).
-   Em mobile, deixa rolar para evitar bugs de iOS. */
+/* Desktop: fundo "preso" (parallax suave) */
 @media (min-width: 901px) {
   body {
     background-attachment: fixed;
   }
 }
 
+/* ═══════════════════════════════════════════════════════════
+   📱 MOBILE — ajustes para a foto aparecer de verdade
+   ═══════════════════════════════════════════════════════════ */
 @media (max-width: 900px) {
   body {
     background-attachment: scroll;
-    background-position: center top;
+
+    /* Enquadra melhor: pega mais o "topo" da foto (ponto focal) */
+    background-position: center 30%;
+    background-size: cover;
+
+    /* Overlay MUITO mais leve: deixa a foto aparecer */
+    background-image:
+      radial-gradient(circle at top left, rgba(33, 189, 193, 0.10), transparent 45%),
+      linear-gradient(180deg,
+        rgba(9, 11, 14, 0.58) 0%,
+        rgba(9, 11, 14, 0.72) 45%,
+        rgba(9, 11, 14, 0.66) 100%
+      ),
+      url("../img/background-event.jpg");
+  }
+
+  /* Bônus: se você tiver uma versão vertical (background-event-mobile.jpg),
+     este bloco abaixo usa ela automaticamente quando existir.
+     Se não existir, o navegador cai de volta na horizontal acima. */
+  @supports (background-image: image-set(url("x") 1x)) {
+    body {
+      background-image:
+        radial-gradient(circle at top left, rgba(33, 189, 193, 0.10), transparent 45%),
+        linear-gradient(180deg,
+          rgba(9, 11, 14, 0.58) 0%,
+          rgba(9, 11, 14, 0.72) 45%,
+          rgba(9, 11, 14, 0.66) 100%
+        ),
+        image-set(
+          url("../img/background-event-mobile.jpg") type("image/jpeg"),
+          url("../img/background-event.jpg") type("image/jpeg")
+        );
+    }
+  }
+
+  /* Text-shadow nos títulos principais: garante legibilidade
+     mesmo com overlay mais leve */
+  h1,
+  h2,
+  .hero-content h1,
+  .dashboard-header h1,
+  .section-heading h2,
+  .panel-heading h2,
+  .invitation-cover h1 {
+    text-shadow:
+      0 2px 12px rgba(0, 0, 0, 0.55),
+      0 1px 4px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Parágrafos também com leve text-shadow para não sumir */
+  .hero-content p,
+  .dashboard-header p,
+  .section-heading p,
+  .invitation-cover p {
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+  }
+}
+
+/* Em telas MUITO pequenas (mobile pequeno), overlay um pouco mais forte
+   para garantir leitura (senão fica tudo "lavado") */
+@media (max-width: 420px) {
+  body {
+    background-image:
+      radial-gradient(circle at top left, rgba(33, 189, 193, 0.08), transparent 45%),
+      linear-gradient(180deg,
+        rgba(9, 11, 14, 0.68) 0%,
+        rgba(9, 11, 14, 0.80) 45%,
+        rgba(9, 11, 14, 0.75) 100%
+      ),
+      url("../img/background-event.jpg");
   }
 }
 
@@ -48,7 +117,7 @@ body {
   to { opacity: 1; }
 }
 
-/* ─── 2. HEADER com efeito "vidro" sobre o fundo ─── */
+/* ─── 2. HEADER com efeito "vidro" ─── */
 .site-header {
   background: rgba(9, 11, 14, 0.78);
   backdrop-filter: blur(20px) saturate(1.15);
@@ -64,21 +133,21 @@ body {
   border-top: 1px solid rgba(33, 189, 193, 0.12);
 }
 
-/* ─── 4. HERO da home — overlay extra para dar destaque ─── */
+/* ─── 4. HERO da home ─── */
 .hero-section {
   position: relative;
   background: radial-gradient(circle at top left, rgba(33, 189, 193, 0.10), transparent 42%);
   overflow: hidden;
 }
 
-/* ─── 5. CTA final da home — overlay extra sutil ─── */
+/* ─── 5. CTA final da home ─── */
 .final-cta-section {
   position: relative;
   background: radial-gradient(circle at bottom right, rgba(33, 189, 193, 0.10), transparent 42%);
   overflow: hidden;
 }
 
-/* ─── 6. Cards um pouco mais opacos para melhor leitura sobre foto ─── */
+/* ─── 6. Cards mais opacos para legibilidade sobre a foto ─── */
 .panel-card,
 .feature-card,
 .pricing-card,
@@ -90,7 +159,7 @@ body {
   -webkit-backdrop-filter: blur(8px);
 }
 
-/* ─── 7. Indicador animado no menu de navegação ─── */
+/* ─── 7. Indicador animado no menu ─── */
 .main-nav a {
   position: relative;
 }
@@ -138,7 +207,7 @@ body {
     0 0 32px rgba(33, 189, 193, 0.10);
 }
 
-/* ─── 9. Ripple sutil nos botões ao clicar ─── */
+/* ─── 9. Ripple nos botões ─── */
 .btn {
   position: relative;
   overflow: hidden;
@@ -193,7 +262,7 @@ body {
   }
 }
 
-/* ─── 11. Foco nos campos com glow suave ─── */
+/* ─── 11. Foco nos campos ─── */
 input:focus,
 select:focus,
 textarea:focus {
@@ -205,7 +274,7 @@ textarea:focus {
   transition: box-shadow 0.24s ease, border-color 0.24s ease;
 }
 
-/* ─── 12. Stat cards destacam o número ao passar o mouse ─── */
+/* ─── 12. Stat cards ─── */
 .stat-card strong {
   transition: color 0.3s ease, transform 0.3s ease;
   display: inline-block;
@@ -216,7 +285,7 @@ textarea:focus {
   transform: scale(1.04);
 }
 
-/* ─── 13. Badge do rodapé mais fluido ─── */
+/* ─── 13. Badge do rodapé ─── */
 .developer-badge {
   transition:
     transform 0.24s cubic-bezier(0.4, 0, 0.2, 1),
@@ -225,7 +294,7 @@ textarea:focus {
     box-shadow 0.24s ease;
 }
 
-/* ─── 14. Brand suave ao passar o mouse ─── */
+/* ─── 14. Brand do header ─── */
 .site-header .brand {
   transition: opacity 0.24s ease, transform 0.24s ease;
 }
@@ -235,7 +304,7 @@ textarea:focus {
   transform: translateY(-1px);
 }
 
-/* ─── 15. Tabela mais fluida ─── */
+/* ─── 15. Tabela fluida ─── */
 .guest-table tr {
   transition: background 0.22s ease;
 }
