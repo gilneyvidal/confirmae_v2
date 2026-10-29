@@ -68,7 +68,7 @@
 
             <div style="margin-top: 24px; border-top: 1px solid rgba(172,173,179,0.2); padding-top: 24px;">
               <button type="button" class="btn btn-secondary" id="addToCalendarButton" style="width: 100%; border-color: rgba(33,189,193,0.4);">
-                📅 Adicionar ao Google Agenda
+                Adicionar ao Google Agenda
               </button>
               <button type="button" class="btn btn-secondary" id="downloadIcsButton" style="width: 100%; margin-top: 8px; font-size: 0.8rem; opacity: 0.7;">
                 Baixar arquivo para iPhone/Outlook
@@ -88,10 +88,16 @@
             <small id="guestToken">Token do convite</small>
           </div>
         </div>
+        
         <div class="qr-code-box" id="invitationQrCodeBox">
           <p class="small-note">Carregando QR Code...</p>
         </div>
-        <p>Este QR Code é exclusivo do seu convite. Ele pode ser apresentado na portaria.</p>
+        
+        <button type="button" class="btn btn-primary" id="saveQrButton" style="width: 100%; margin-top: 16px;">
+          Salvar QR Code na Galeria
+        </button>
+
+        <p class="small-note" style="margin-top: 12px;">Apresente este QR Code na portaria para validar sua entrada.</p>
       </aside>
     </section>
   </main>
