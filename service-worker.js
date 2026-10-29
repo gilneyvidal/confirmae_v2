@@ -1,24 +1,4 @@
-/* =========================================================
-   Confirmaê · Service Worker v5
-   =========================================================
-   Mudança estratégica em relação à v4:
-
-   ANTES:
-     - CSS/JS → stale-while-revalidate
-       (servia cache imediatamente, atualizava em background)
-       ⚠️ PROBLEMA: exigia trocar ?v=X no HTML a cada edição
-
-   AGORA:
-     - CSS/JS → network-first
-       (busca sempre na rede, cai no cache só se offline)
-       ✅ Vantagem: edições aparecem SEM trocar número
-       ✅ Custo: ~100ms de delay (imperceptível)
-
-   NAVEGAÇÃO (HTML) → network-first (mantém)
-   IMAGENS → stale-while-revalidate (mantém — imagem não muda tanto)
-   ========================================================= */
-
-const CONFIRMAE_CACHE_NAME = "confirmae-cache-v5";
+const CONFIRMAE_CACHE_NAME = "confirmae-cache-v6";
 
 const CONFIRMAE_CORE_ASSETS = [
   "./",
@@ -87,13 +67,11 @@ self.addEventListener("fetch", (event) => {
   const requestUrl = new URL(request.url);
   if (requestUrl.origin !== self.location.origin) return;
 
-  /* ─── Navegação (HTML) → network-first ─── */
   if (request.mode === "navigate") {
     event.respondWith(networkFirst(request));
     return;
   }
 
-  /* ─── CSS e JS → network-first (EDIÇÕES APARECEM SOZINHAS) ─── */
   if (
     request.destination === "style" ||
     request.destination === "script" ||
@@ -103,13 +81,11 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  /* ─── Imagens → stale-while-revalidate (velocidade) ─── */
   if (request.destination === "image") {
     event.respondWith(staleWhileRevalidate(request));
     return;
   }
 
-  /* ─── Outros → network-first ─── */
   event.respondWith(networkFirst(request));
 });
 
