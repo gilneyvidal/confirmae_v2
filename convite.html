@@ -10,12 +10,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <title>Convite | Confirmaê</title>
-
   <meta name="description" content="Página de confirmação de presença do convidado no Confirmaê." />
 
   <link rel="icon" type="image/png" href="assets/img/confirmae-icon.png" />
   <link rel="apple-touch-icon" href="assets/img/confirmae-icon.png" />
-  
   <link rel="stylesheet" href="assets/css/style.css" />
   <link rel="stylesheet" href="assets/css/style-v2.css" />
 </head>
@@ -27,7 +25,6 @@
         <span class="brand-icon">✓</span>
         <span class="brand-text">Confirmaê</span>
       </a>
-
       <nav class="main-nav" aria-label="Menu principal">
         <a href="index.html">Início</a>
         <a href="admin.html">Anfitrião</a>
@@ -52,7 +49,7 @@
             <ul class="event-details-list">
               <li><strong>Data:</strong> <span id="eventDate">--</span></li>
               <li><strong>Horário:</strong> <span id="eventTime">--</span></li>
-              <li><strong>Local:</strong> <span id="eventLocation">--</span></li>
+              <li><strong>Local:</strong> <a href="#" id="eventLocation" target="_blank" style="color: var(--color-primary); text-decoration: underline;">--</a></li>
             </ul>
           </div>
 
@@ -77,10 +74,7 @@
                 Baixar arquivo para iPhone/Outlook
               </button>
             </div>
-
-            <p class="small-note" style="margin-top: 12px; text-align: center;">
-              Sua resposta será salva online no painel do anfitrião.
-            </p>
+            <p class="small-note" style="margin-top: 12px; text-align: center;">Sua resposta será salva online no painel.</p>
           </div>
         </div>
       </article>
@@ -94,12 +88,10 @@
             <small id="guestToken">Token do convite</small>
           </div>
         </div>
-
         <div class="qr-code-box" id="invitationQrCodeBox">
           <p class="small-note">Carregando QR Code...</p>
         </div>
-
-        <p>Este QR Code é exclusivo do seu convite. Ele pode ser apresentado na portaria para validar sua entrada.</p>
+        <p>Este QR Code é exclusivo do seu convite. Ele pode ser apresentado na portaria.</p>
       </aside>
     </section>
   </main>
