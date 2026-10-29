@@ -23,13 +23,20 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+/* =========================================================
+   Confirmaê v2 · Configuração do Firebase
+   =========================================================
+   ATENÇÃO: Este arquivo aponta para o projeto NOVO (v2).
+   Para reverter para o antigo, troque os valores de volta.
+   ========================================================= */
+
 const firebaseConfig = {
-  apiKey: "AIzaSyAd_csKRHD2dEzyszjzCC3bTJvpHH_YUf8",
-  authDomain: "confirmae-e629a.firebaseapp.com",
-  projectId: "confirmae-e629a",
-  storageBucket: "confirmae-e629a.firebasestorage.app",
-  messagingSenderId: "372030861002",
-  appId: "1:372030861002:web:d688248aef7a5297b8ce33"
+  apiKey: "AIzaSyDqImA4Bh-ufuJnKrLu1dJ-tjOtiynJtM8",
+  authDomain: "confirmae-v2.firebaseapp.com",
+  projectId: "confirmae-v2",
+  storageBucket: "confirmae-v2.firebasestorage.app",
+  messagingSenderId: "158099483138",
+  appId: "1:158099483138:web:3105baf62554cb72c6951b"
 };
 
 const app = initializeApp(firebaseConfig);
