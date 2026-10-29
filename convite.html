@@ -11,10 +11,7 @@
 
   <title>Convite | Confirmaê</title>
 
-  <meta
-    name="description"
-    content="Página de confirmação de presença do convidado no Confirmaê."
-  />
+  <meta name="description" content="Página de confirmação de presença do convidado no Confirmaê." />
 
   <link rel="icon" type="image/png" href="assets/img/confirmae-icon.png" />
   <link rel="apple-touch-icon" href="assets/img/confirmae-icon.png" />
@@ -56,44 +53,33 @@
             <h2 id="eventName">Carregando evento...</h2>
 
             <ul class="event-details-list">
-              <li>
-                <strong>Data:</strong>
-                <span id="eventDate">--</span>
-              </li>
-              <li>
-                <strong>Horário:</strong>
-                <span id="eventTime">--</span>
-              </li>
-              <li>
-                <strong>Local:</strong>
-                <span id="eventLocation">--</span>
-              </li>
+              <li><strong>Data:</strong> <span id="eventDate">--</span></li>
+              <li><strong>Horário:</strong> <span id="eventTime">--</span></li>
+              <li><strong>Local:</strong> <span id="eventLocation">--</span></li>
             </ul>
           </div>
 
           <div class="guest-confirmation-box">
             <h3>Confirmação de presença</h3>
-
-            <p id="confirmationMessage">
-              Estamos carregando seu convite.
-            </p>
-
+            <p id="confirmationMessage">Estamos carregando seu convite.</p>
             <div class="current-status-box" id="currentStatusBox">
               <span class="status-dot status-dot-waiting"></span>
               <span id="currentStatusText">Carregando...</span>
             </div>
 
             <div class="confirmation-actions">
-              <button type="button" class="btn btn-primary" id="acceptButton">
-                Sim, vou comparecer
-              </button>
+              <button type="button" class="btn btn-primary" id="acceptButton">Sim, vou comparecer</button>
+              <button type="button" class="btn btn-danger" id="declineButton">Não poderei comparecer</button>
+            </div>
 
-              <button type="button" class="btn btn-danger" id="declineButton">
-                Não poderei comparecer
+            <!-- NOVO BOTÃO DE AGENDA -->
+            <div class="hero-actions" style="margin-top: 24px; border-top: 1px solid rgba(172,173,179,0.2); padding-top: 24px;">
+              <button type="button" class="btn btn-secondary" id="addToCalendarButton" style="width: 100%;">
+                📅 Salvar na Agenda
               </button>
             </div>
 
-            <p class="small-note">
+            <p class="small-note" style="margin-top: 12px; text-align: center;">
               Sua resposta será salva online no painel do anfitrião.
             </p>
           </div>
@@ -102,10 +88,8 @@
 
       <aside class="side-panel">
         <h2>Seu convite</h2>
-
         <div class="guest-summary-card">
           <span class="guest-avatar" id="guestInitial">C</span>
-
           <div>
             <strong id="guestName">Convidado</strong>
             <small id="guestToken">Token do convite</small>
@@ -116,10 +100,7 @@
           <p class="small-note">Carregando QR Code...</p>
         </div>
 
-        <p>
-          Este QR Code é exclusivo do seu convite. Ele pode ser apresentado na
-          portaria para validar sua entrada.
-        </p>
+        <p>Este QR Code é exclusivo do seu convite. Ele pode ser apresentado na portaria para validar sua entrada.</p>
       </aside>
     </section>
   </main>
@@ -130,14 +111,7 @@
         <p>© 2026 Confirmaê.</p>
         <p>Confirmaê é um sistema desenvolvido por Vidal Design Solutions.</p>
       </div>
-
-      <a
-        href="http://www.vidaldesignsolutions.com.br"
-        class="developer-badge"
-        target="_blank"
-        rel="noopener"
-        aria-label="Acessar site da Vidal Design Solutions"
-      >
+      <a href="http://www.vidaldesignsolutions.com.br" class="developer-badge" target="_blank" rel="noopener" aria-label="Acessar site da Vidal Design Solutions">
         <span>Desenvolvido por</span>
         <img src="assets/img/vidal-design-logo.png" alt="Vidal Design Solutions" />
       </a>
