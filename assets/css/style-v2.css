@@ -1,8 +1,9 @@
 /* =========================================================
    Confirmaê v2 · Camada de fluidez + foto de fundo GLOBAL
    =========================================================
-   v5: Correção do "zoom" do fundo no mobile usando body::before.
+   v6: Correção do "zoom" do fundo no mobile usando body::before.
    Correção de layout do formulário (selects e inputs).
+   Deixando o layout mais largo no celular.
    ========================================================= */
 
 /* ─── 1. BACKGROUND GLOBAL (A prova de bugs de mobile) ─── */
@@ -210,12 +211,33 @@ body::before {
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* ─── 11. Foco nos campos ─── */
+/* ─── 11. Estilo Global de Input e SELECT (Correção do fundo branco) ─── */
 input:focus, select:focus, textarea:focus {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 4px rgba(33, 189, 193, 0.13), 0 0 22px rgba(33, 189, 193, 0.10);
   outline: none;
   transition: box-shadow 0.24s ease, border-color 0.24s ease;
+}
+
+select {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0 14px;
+  color: var(--color-text);
+  background: #0D1014; /* Fundo escuro igual aos inputs */
+  outline: none;
+  font-family: inherit;
+  font-size: 1rem;
+  appearance: none; /* Remove a seta padrão feia do navegador */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  /* Adiciona uma setinha elegante em SVG */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ACADB3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px;
 }
 
 /* ─── 12. Stat cards ─── */
@@ -254,42 +276,44 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   📱 CORREÇÃO DE LAYOUT DO FORMULÁRIO NO MOBILE
+   📱 CORREÇÃO DE LARGURA NO MOBILE (Tirando o "estreito")
    ═══════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
-  /* Evita que os containers vazem para os lados */
+  /* Aumenta a área útil da tela, diminuindo a margem lateral */
   .container {
-    padding-left: 16px;
-    padding-right: 16px;
+    width: calc(100% - 16px) !important;
+    padding: 0 !important;
     overflow-x: hidden;
   }
 
-  /* Diminui um pouco o espaço interno dos cards no celular */
+  /* O card ocupa 100% do container e diminui um pouco o padding interno */
   .panel-card, .guest-form {
-    padding: 16px;
+    padding: 16px !important;
+    width: 100% !important;
+    box-sizing: border-box;
   }
-
-  /* Faz os inputs e selects respeitarem a largura da tela */
+  
+  /* Inputs ocupam o espaço todo */
   .guest-form input, 
   .guest-form select, 
   .guest-form textarea {
-    width: 100%;
-    max-width: 100%;
+    width: 100% !important;
     box-sizing: border-box;
-    font-size: 16px; /* Evita zoom automático no iOS ao focar */
+    font-size: 16px; /* Evita zoom no iOS */
   }
 
-  /* Corrige o cabeçalho dos cards (Título e Botão "Sair") */
+  /* Empilha o título e o botão Sair */
   .panel-heading {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
   
-  /* Ajusta o texto que estava colado no topo no print 2 */
+  /* Empilha os botões de ação */
   .hero-actions {
     margin-top: 16px;
     flex-direction: column;
+    width: 100%;
   }
   
   .hero-actions .btn {
