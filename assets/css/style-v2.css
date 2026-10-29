@@ -1,14 +1,46 @@
 /* =========================================================
-   Confirmaê v2 · Camada de fluidez + foto de fundo
+   Confirmaê v2 · Camada de fluidez + foto de fundo GLOBAL
    =========================================================
    Este arquivo é ADITIVO. Ele não substitui o style.css.
    Carregado depois, sobrepõe apenas o que precisa.
    Se algo der errado, basta remover o <link> deste CSS.
+
+   ⚡ NOVO (v2): o background agora é aplicado no <body>,
+   afetando automaticamente TODAS as páginas.
    ========================================================= */
 
-/* ─── 1. Fade-in suave ao carregar cada página ─── */
+/* ─── 1. BACKGROUND GLOBAL (aplica em todas as páginas) ─── */
 body {
+  background-image:
+    radial-gradient(circle at top left, rgba(33, 189, 193, 0.20), transparent 42%),
+    radial-gradient(circle at bottom right, rgba(94, 97, 104, 0.16), transparent 38%),
+    linear-gradient(180deg,
+      rgba(9, 11, 14, 0.82) 0%,
+      rgba(9, 11, 14, 0.90) 45%,
+      rgba(9, 11, 14, 0.88) 100%
+    ),
+    url("../img/background-event.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  /* Fade-in suave ao carregar a página */
   animation: v2PageFadeIn 0.42s ease both;
+}
+
+/* Em desktop, o fundo fica "preso" (parallax suave).
+   Em mobile, deixa rolar para evitar bugs de iOS. */
+@media (min-width: 901px) {
+  body {
+    background-attachment: fixed;
+  }
+}
+
+@media (max-width: 900px) {
+  body {
+    background-attachment: scroll;
+    background-position: center top;
+  }
 }
 
 @keyframes v2PageFadeIn {
@@ -16,7 +48,49 @@ body {
   to { opacity: 1; }
 }
 
-/* ─── 2. Indicador animado no menu de navegação ─── */
+/* ─── 2. HEADER com efeito "vidro" sobre o fundo ─── */
+.site-header {
+  background: rgba(9, 11, 14, 0.78);
+  backdrop-filter: blur(20px) saturate(1.15);
+  -webkit-backdrop-filter: blur(20px) saturate(1.15);
+  border-bottom: 1px solid rgba(33, 189, 193, 0.14);
+}
+
+/* ─── 3. FOOTER integrado ao fundo ─── */
+.site-footer {
+  background: rgba(9, 11, 14, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(33, 189, 193, 0.12);
+}
+
+/* ─── 4. HERO da home — overlay extra para dar destaque ─── */
+.hero-section {
+  position: relative;
+  background: radial-gradient(circle at top left, rgba(33, 189, 193, 0.10), transparent 42%);
+  overflow: hidden;
+}
+
+/* ─── 5. CTA final da home — overlay extra sutil ─── */
+.final-cta-section {
+  position: relative;
+  background: radial-gradient(circle at bottom right, rgba(33, 189, 193, 0.10), transparent 42%);
+  overflow: hidden;
+}
+
+/* ─── 6. Cards um pouco mais opacos para melhor leitura sobre foto ─── */
+.panel-card,
+.feature-card,
+.pricing-card,
+.stat-card,
+.event-type-card,
+.event-selector-card {
+  background: rgba(21, 26, 32, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* ─── 7. Indicador animado no menu de navegação ─── */
 .main-nav a {
   position: relative;
 }
@@ -39,39 +113,7 @@ body {
   transform: scaleX(1);
 }
 
-/* ─── 3. HERO com foto de fundo (index.html) ─── */
-.hero-section {
-  position: relative;
-  background-image:
-    radial-gradient(circle at top left, rgba(33, 189, 193, 0.24), transparent 42%),
-    linear-gradient(180deg, rgba(9, 11, 14, 0.82) 0%, rgba(9, 11, 14, 0.94) 100%),
-    url("../img/background-event.jpg");
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  overflow: hidden;
-}
-
-/* ─── 4. CTA final com foto de fundo (index.html) ─── */
-.final-cta-section {
-  position: relative;
-  background-image:
-    radial-gradient(circle at bottom right, rgba(33, 189, 193, 0.22), transparent 42%),
-    linear-gradient(180deg, rgba(9, 11, 14, 0.9) 0%, rgba(9, 11, 14, 0.96) 100%),
-    url("../img/background-event.jpg");
-  background-size: cover;
-  background-position: center 65%;
-  overflow: hidden;
-}
-
-/* Em mobile, background-attachment: fixed não funciona bem no iOS */
-@media (max-width: 900px) {
-  .hero-section {
-    background-attachment: scroll;
-  }
-}
-
-/* ─── 5. Cards com hover mais elegante ─── */
+/* ─── 8. Cards com hover mais elegante ─── */
 .panel-card,
 .feature-card,
 .pricing-card,
@@ -93,10 +135,10 @@ body {
   border-color: rgba(33, 189, 193, 0.42);
   box-shadow:
     0 22px 52px rgba(0, 0, 0, 0.34),
-    0 0 32px rgba(33, 189, 193, 0.08);
+    0 0 32px rgba(33, 189, 193, 0.10);
 }
 
-/* ─── 6. Ripple sutil nos botões ao clicar ─── */
+/* ─── 9. Ripple sutil nos botões ao clicar ─── */
 .btn {
   position: relative;
   overflow: hidden;
@@ -129,7 +171,7 @@ body {
   transform: translateY(-1px) scale(0.98);
 }
 
-/* ─── 7. Modal com blur + slide-up ─── */
+/* ─── 10. Modal com blur + slide-up ─── */
 .modal-overlay {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -151,19 +193,19 @@ body {
   }
 }
 
-/* ─── 8. Foco nos campos com glow suave ─── */
+/* ─── 11. Foco nos campos com glow suave ─── */
 input:focus,
 select:focus,
 textarea:focus {
   border-color: var(--color-primary);
   box-shadow:
     0 0 0 4px rgba(33, 189, 193, 0.13),
-    0 0 22px rgba(33, 189, 193, 0.08);
+    0 0 22px rgba(33, 189, 193, 0.10);
   outline: none;
   transition: box-shadow 0.24s ease, border-color 0.24s ease;
 }
 
-/* ─── 9. Stat cards destacam o número ao passar o mouse ─── */
+/* ─── 12. Stat cards destacam o número ao passar o mouse ─── */
 .stat-card strong {
   transition: color 0.3s ease, transform 0.3s ease;
   display: inline-block;
@@ -174,7 +216,7 @@ textarea:focus {
   transform: scale(1.04);
 }
 
-/* ─── 10. Badge do rodapé mais fluido ─── */
+/* ─── 13. Badge do rodapé mais fluido ─── */
 .developer-badge {
   transition:
     transform 0.24s cubic-bezier(0.4, 0, 0.2, 1),
@@ -183,13 +225,7 @@ textarea:focus {
     box-shadow 0.24s ease;
 }
 
-/* ─── 11. Links de navegação do rodapé ─── */
-.footer-brand-note p,
-.developer-badge span {
-  transition: color 0.22s ease;
-}
-
-/* ─── 12. Ícone de brand suave ao passar o mouse ─── */
+/* ─── 14. Brand suave ao passar o mouse ─── */
 .site-header .brand {
   transition: opacity 0.24s ease, transform 0.24s ease;
 }
@@ -199,16 +235,16 @@ textarea:focus {
   transform: translateY(-1px);
 }
 
-/* ─── 13. Tabela mais fluida ─── */
+/* ─── 15. Tabela mais fluida ─── */
 .guest-table tr {
   transition: background 0.22s ease;
 }
 
 .guest-table tbody tr:hover {
-  background: rgba(33, 189, 193, 0.04);
+  background: rgba(33, 189, 193, 0.05);
 }
 
-/* ─── 14. Respeito a quem prefere sem animação ─── */
+/* ─── 16. Respeito a quem prefere sem animação ─── */
 @media (prefers-reduced-motion: reduce) {
   body,
   .btn,
