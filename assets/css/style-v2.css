@@ -1,10 +1,9 @@
 /* =========================================================
    Confirmaê v2 · Camada de fluidez + foto de fundo GLOBAL
    =========================================================
-   v7: Estilos para o novo modal de envio e ajustes de botões mobile.
+   v8: Estilos para textareas e ajustes de inputs mobile.
    ========================================================= */
 
-/* ─── 1. BACKGROUND GLOBAL (A prova de bugs de mobile) ─── */
 body {
   background-color: #090b0e;
   animation: v2PageFadeIn 0.42s ease both;
@@ -39,10 +38,7 @@ body::before {
     background-image:
       radial-gradient(circle at top left, rgba(33, 189, 193, 0.10), transparent 45%),
       linear-gradient(180deg, rgba(9, 11, 14, 0.58) 0%, rgba(9, 11, 14, 0.72) 45%, rgba(9, 11, 14, 0.66) 100%),
-      image-set(
-        url("../img/background-event-mobile.jpg") 1x type("image/jpeg"),
-        url("../img/background-event.jpg") 1x type("image/jpeg")
-      );
+      image-set(url("../img/background-event-mobile.jpg") 1x type("image/jpeg"), url("../img/background-event.jpg") 1x type("image/jpeg"));
   }
 
   h1, h2, .hero-content h1, .dashboard-header h1, .section-heading h2, .panel-heading h2, .invitation-cover h1 {
@@ -55,7 +51,6 @@ body::before {
 
 @keyframes v2PageFadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* ─── 2. HEADER E FOOTER ─── */
 .site-header {
   background: rgba(9, 11, 14, 0.78);
   backdrop-filter: blur(20px) saturate(1.15);
@@ -69,7 +64,6 @@ body::before {
   border-top: 1px solid rgba(33, 189, 193, 0.12);
 }
 
-/* ─── 3. CARDS ─── */
 .hero-section, .final-cta-section { position: relative; overflow: hidden; }
 .hero-section { background: radial-gradient(circle at top left, rgba(33, 189, 193, 0.10), transparent 42%); }
 .final-cta-section { background: radial-gradient(circle at bottom right, rgba(33, 189, 193, 0.10), transparent 42%); }
@@ -87,7 +81,6 @@ body::before {
   box-shadow: 0 22px 52px rgba(0, 0, 0, 0.34), 0 0 32px rgba(33, 189, 193, 0.10);
 }
 
-/* ─── 4. BOTOES E INPUTS ─── */
 .main-nav a { position: relative; }
 .main-nav a::after {
   content: ""; position: absolute; bottom: 4px; left: 14px; right: 14px; height: 2px; background: var(--color-primary); border-radius: 2px; transform: scaleX(0); transform-origin: center; transition: transform 0.24s cubic-bezier(0.4, 0, 0.2, 1);
@@ -106,22 +99,22 @@ input:focus, select:focus, textarea:focus {
   transition: box-shadow 0.24s ease, border-color 0.24s ease;
 }
 
+select, textarea {
+  width: 100%; min-height: 46px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 12px 14px; color: var(--color-text); background: #0D1014; outline: none; font-family: inherit; font-size: 1rem; box-sizing: border-box;
+}
 select {
-  width: 100%; min-height: 46px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 0 14px; color: var(--color-text); background: #0D1014; outline: none; font-family: inherit; font-size: 1rem; appearance: none; -webkit-appearance: none; -moz-appearance: none;
+  appearance: none; -webkit-appearance: none; -moz-appearance: none;
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ACADB3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat; background-position: right 14px center; background-size: 16px;
 }
+textarea { resize: vertical; min-height: 100px; line-height: 1.5; }
 
-/* ─── 5. MODAIS ─── */
 .modal-overlay {
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  transition: opacity 0.28s ease;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: opacity 0.28s ease;
 }
 .modal-card { animation: v2ModalSlideUp 0.34s cubic-bezier(0.4, 0, 0.2, 1) both; }
 @keyframes v2ModalSlideUp { from { opacity: 0; transform: translateY(32px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
-/* ─── 6. DEMAIS ELEMENTOS ─── */
 .stat-card strong { transition: color 0.3s ease, transform 0.3s ease; display: inline-block; }
 .stat-card:hover strong { color: var(--color-primary); transform: scale(1.04); }
 .developer-badge { transition: transform 0.24s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.24s ease, background 0.24s ease, box-shadow 0.24s ease; }
@@ -130,7 +123,6 @@ select {
 .guest-table tr { transition: background 0.22s ease; }
 .guest-table tbody tr:hover { background: rgba(33, 189, 193, 0.05); }
 
-/* ─── 7. MOBILE RESPONSIVO ─── */
 @media (max-width: 768px) {
   .container { width: calc(100% - 16px) !important; padding: 0 !important; overflow-x: hidden; }
   .panel-card, .guest-form { padding: 16px !important; width: 100% !important; box-sizing: border-box; }
