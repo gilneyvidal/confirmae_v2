@@ -42,11 +42,7 @@
       <div>
         <span class="eyebrow">Painel do anfitrião</span>
         <h1>Acesse seu evento</h1>
-        <p>
-          Informe o ID e o PIN do painel para personalizar, cadastrar convidados,
-          gerar QR Codes e acompanhar confirmações.
-        </p>
-
+        <p>Informe o ID e o PIN do painel para personalizar, cadastrar convidados, gerar QR Codes e acompanhar confirmações.</p>
         <div class="hero-actions">
           <a href="index.html#contratar" class="btn btn-primary">Criar/contratar novo evento</a>
         </div>
@@ -55,17 +51,10 @@
       <div class="event-selector-card">
         <label for="eventIdInput">ID do evento</label>
         <input type="text" id="eventIdInput" value="evento-demo" aria-label="ID do evento" />
-
         <label for="eventPanelPinInput">PIN do painel</label>
         <input type="password" id="eventPanelPinInput" placeholder="Digite o PIN do painel" aria-label="PIN do painel" />
-
-        <small id="panelPinHelpText">
-          O PIN é enviado pelo WhatsApp após a liberação do evento.
-        </small>
-
-        <button type="button" class="btn btn-secondary" id="loadEventButton">
-          Acessar evento
-        </button>
+        <small id="panelPinHelpText">O PIN é enviado pelo WhatsApp após a liberação do evento.</small>
+        <button type="button" class="btn btn-secondary" id="loadEventButton">Acessar evento</button>
       </div>
     </section>
 
@@ -77,14 +66,12 @@
             <h2>Liberação necessária</h2>
           </div>
         </div>
-
         <div class="features-grid">
           <article class="feature-card">
             <div class="feature-icon">ID</div>
             <h3 id="lockedEventIdText">evento</h3>
             <p>Este ID ainda não foi liberado para uso no Confirmaê.</p>
           </article>
-
           <article class="feature-card">
             <div class="feature-icon">PIX</div>
             <h3 id="unlockPriceText">Planos disponíveis</h3>
@@ -94,26 +81,16 @@
               <strong>Nome:</strong> <span id="pixHolderText">Gilney Wesley Aparecido Vidal</span>
             </p>
           </article>
-
           <article class="feature-card">
             <div class="feature-icon">WA</div>
             <h3>Enviar comprovante</h3>
             <p>Após o pagamento, envie o comprovante pelo WhatsApp para liberação manual.</p>
           </article>
         </div>
-
         <div class="hero-actions">
-          <a href="#" class="btn btn-primary" id="unlockWhatsappLink" target="_blank" rel="noopener">
-            Falar no WhatsApp
-          </a>
-
-          <button type="button" class="btn btn-secondary" id="copyPixButton">
-            Copiar chave Pix
-          </button>
-
-          <a href="index.html#contratar" class="btn btn-secondary">
-            Ver explicação completa
-          </a>
+          <a href="#" class="btn btn-primary" id="unlockWhatsappLink" target="_blank" rel="noopener">Falar no WhatsApp</a>
+          <button type="button" class="btn btn-secondary" id="copyPixButton">Copiar chave Pix</button>
+          <a href="index.html#contratar" class="btn btn-secondary">Ver explicação completa</a>
         </div>
       </article>
     </section>
@@ -134,7 +111,6 @@
             <h2>Dados do evento</h2>
           </div>
         </div>
-
         <form class="guest-form" id="eventConfigForm">
           <div class="form-group">
             <label for="eventNameInput">Nome do evento</label>
@@ -181,13 +157,10 @@
             <h2>Cadastrar convite</h2>
           </div>
         </div>
-
         <form class="guest-form" id="guestForm">
-          <!-- NOVO BOTÃO CONTACT PICKER -->
           <button type="button" class="btn btn-secondary" id="pickContactButton" hidden style="margin-bottom: 8px; border: 1px dashed var(--color-primary); background: rgba(33,189,193,0.05);">
             📱 Buscar contato da agenda
           </button>
-
           <div class="form-group">
             <label for="guestNameInput">Nome do convidado</label>
             <input type="text" id="guestNameInput" placeholder="Ex: Maria Oliveira" required />
@@ -214,7 +187,6 @@
             <span class="eyebrow">Lista de convidados</span>
             <h2>Status dos convites</h2>
           </div>
-
           <div class="table-actions">
             <button type="button" class="btn btn-secondary btn-small" id="exportAllGuestsButton">Exportar todos</button>
             <button type="button" class="btn btn-secondary btn-small" id="exportAcceptedGuestsButton">Exportar confirmados</button>
@@ -223,7 +195,6 @@
             <button type="button" class="btn btn-secondary btn-small" id="resetDemoButton">Restaurar demo</button>
           </div>
         </div>
-
         <div class="table-wrapper">
           <table class="guest-table">
             <thead>
@@ -244,7 +215,6 @@
     </section>
   </main>
 
-  <!-- MODAL DE QR CODE (JÁ EXISTENTE) -->
   <div class="modal-overlay" id="qrModal" aria-hidden="true">
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="qrModalTitle">
       <div class="modal-header">
@@ -254,7 +224,6 @@
         </div>
         <button type="button" class="modal-close" id="closeQrModal" aria-label="Fechar modal">×</button>
       </div>
-
       <div class="qr-modal-body">
         <div class="qr-guest-info">
           <span class="guest-avatar" id="qrGuestInitial">C</span>
@@ -263,18 +232,15 @@
             <small id="qrGuestLink">Link do convite</small>
           </div>
         </div>
-
         <div class="qr-code-box" id="qrCodeBox"></div>
-
         <div class="qr-actions">
           <button type="button" class="btn btn-secondary" id="copyQrLinkButton">Copiar link</button>
-          <button type="button" class="btn btn-primary" id="downloadQrButton">Baixar QR Code</button>
+          <button type="button" class="btn btn-primary" id="downloadQrButton">Salvar/Enviar QR Code</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- NOVO MODAL: CONVITE CRIADO -->
   <div class="modal-overlay" id="guestCreatedModal" aria-hidden="true">
     <div class="modal-card" role="dialog" aria-modal="true">
       <div class="modal-header">
@@ -284,14 +250,12 @@
         </div>
         <button type="button" class="modal-close" id="closeGuestCreatedModal" aria-label="Fechar modal">×</button>
       </div>
-
       <div class="qr-modal-body" style="text-align: center;">
         <p>O convite de <strong id="createdGuestName">Convidado</strong> foi gerado com sucesso.</p>
-        <p class="small-note">Deseja enviar agora para o convidado?</p>
-        
+        <p class="small-note" id="createdGuestPhoneNote"></p>
         <div class="hero-actions" style="margin-top: 24px; flex-direction: column;">
           <button type="button" class="btn btn-primary" id="sendWhatsappCreatedBtn">
-            Abrir WhatsApp para enviar
+            Enviar convite pelo WhatsApp
           </button>
           <button type="button" class="btn btn-secondary" id="copyCreatedLinkBtn">
             Copiar link do convite
