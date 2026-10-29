@@ -10,7 +10,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <title>Painel do Anfitrião | Confirmaê</title>
-
   <meta name="description" content="Painel do anfitrião para personalizar eventos, gerenciar convidados, links individuais, QR Codes e status de confirmação." />
 
   <link rel="icon" type="image/png" href="assets/img/confirmae-icon.png" />
@@ -27,7 +26,6 @@
         <span class="brand-icon">✓</span>
         <span class="brand-text">Confirmaê</span>
       </a>
-
       <nav class="main-nav" aria-label="Menu principal">
         <a href="index.html">Início</a>
         <a href="index.html#contratar">Criar evento</a>
@@ -119,14 +117,13 @@
           </div>
           <div class="form-group">
             <label for="eventTypeInput">Tipo do evento</label>
-            <input type="text" id="eventTypeInput" placeholder="Ex: Casamento, Aniversário, Festa, Formatura" required />
+            <input type="text" id="eventTypeInput" placeholder="Ex: Casamento, Aniversário, Festa" required />
           </div>
           <div class="form-group">
             <label for="eventHostInput">Nome do anfitrião</label>
             <input type="text" id="eventHostInput" placeholder="Ex: João & Maria" />
           </div>
           
-          <!-- NOVA DATA E HORA -->
           <div class="form-group">
             <label for="eventDateIsoInput">Data do evento</label>
             <input type="date" id="eventDateIsoInput" required />
@@ -138,13 +135,15 @@
 
           <div class="form-group">
             <label for="eventLocationInput">Local (Endereço completo)</label>
-            <input type="text" id="eventLocationInput" placeholder="Ex: Av. Paulista, 1000 - São Paulo" required />
+            <input type="text" id="eventLocationInput" list="address-suggestions" placeholder="Digite o nome da rua ou local..." required autocomplete="off" />
+            <datalist id="address-suggestions"></datalist>
+            <small id="locationHelpText">Digite e selecione o endereço na lista para preencher automaticamente.</small>
           </div>
 
           <!-- NOVAS MENSAGENS -->
           <div class="form-group">
-            <label for="eventIntroSelect">Mensagem do convite</label>
-            <select id="eventIntroSelect">
+            <label for="eventIntroCategory">Categoria da Mensagem</label>
+            <select id="eventIntroCategory">
               <option value="casamento">Casamento</option>
               <option value="aniversario">Aniversário Adulto</option>
               <option value="aniversario-infantil">Aniversário Infantil</option>
@@ -154,12 +153,17 @@
               <option value="cha-casa">Chá de Casa Nova</option>
               <option value="festa-junina">Festa Junina</option>
               <option value="batizado">Batizado</option>
-              <option value="custom">--- Escrever minha própria mensagem ---</option>
             </select>
           </div>
-          <div class="form-group" id="customIntroGroup" hidden>
-            <label for="eventIntroInput">Escreva sua mensagem</label>
-            <input type="text" id="eventIntroInput" placeholder="Digite o texto do convite..." />
+          
+          <div class="form-group">
+            <label for="eventIntroVariation">Escolha uma sugestão</label>
+            <select id="eventIntroVariation"></select>
+          </div>
+
+          <div class="form-group">
+            <label for="eventIntroInput">Mensagem do convite (editável)</label>
+            <textarea id="eventIntroInput" rows="4" placeholder="O texto aparecerá no convite do convidado..."></textarea>
           </div>
 
           <button type="submit" class="btn btn-primary">Salvar dados do evento</button>
@@ -177,7 +181,7 @@
         </div>
         <form class="guest-form" id="guestForm">
           <button type="button" class="btn btn-secondary" id="pickContactButton" hidden style="margin-bottom: 8px; border: 1px dashed var(--color-primary); background: rgba(33,189,193,0.05);">
-            📱 Buscar contato da agenda
+            Buscar contato da agenda
           </button>
           <div class="form-group">
             <label for="guestNameInput">Nome do convidado</label>
@@ -272,12 +276,8 @@
         <p>O convite de <strong id="createdGuestName">Convidado</strong> foi gerado com sucesso.</p>
         <p class="small-note" id="createdGuestPhoneNote"></p>
         <div class="hero-actions" style="margin-top: 24px; flex-direction: column;">
-          <button type="button" class="btn btn-primary" id="sendWhatsappCreatedBtn">
-            Enviar convite pelo WhatsApp
-          </button>
-          <button type="button" class="btn btn-secondary" id="copyCreatedLinkBtn">
-            Copiar link do convite
-          </button>
+          <button type="button" class="btn btn-primary" id="sendWhatsappCreatedBtn">Enviar convite pelo WhatsApp</button>
+          <button type="button" class="btn btn-secondary" id="copyCreatedLinkBtn">Copiar link do convite</button>
         </div>
       </div>
     </div>
