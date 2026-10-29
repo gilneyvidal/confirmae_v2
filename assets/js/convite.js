@@ -26,6 +26,7 @@ const guestName = document.getElementById("guestName");
 const guestToken = document.getElementById("guestToken");
 const invitationQrCodeBox = document.getElementById("invitationQrCodeBox");
 const addToCalendarButton = document.getElementById("addToCalendarButton");
+const downloadIcsButton = document.getElementById("downloadIcsButton");
 
 const eventId = getQueryParam("evento") || CONFIRMAE_THEME.defaultEventId;
 const guestId = getQueryParam("convidado") || "convidado-demo";
@@ -52,7 +53,7 @@ function renderEventInfo(eventInfo) {
   eventName.textContent = eventInfo.name || "Evento";
   eventIntro.textContent = eventInfo.intro || "Você está recebendo este convite especial. Confirme sua presença para ajudar o anfitrião na organização.";
   eventDate.textContent = eventInfo.date || "Data a definir";
-  eventTime.textContent = eventInfo.time || "Horário a definir";
+  eventTime.textContent = eventInfo.time || "A definir";
   eventLocation.textContent = eventInfo.location || "Local a definir";
 }
 
@@ -66,69 +67,60 @@ function renderInvitationQrCode() {
   new QRCode(invitationQrCodeBox, { text: window.location.href, width: 220, height: 220, colorDark: "#221b35", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
 }
 
-// =========================================================
-// NOVA FUNÇÃO: GERAR ARQUIVO ICS (SALVAR NA AGENDA)
-// =========================================================
-function generateICS() {
-  if (!currentEventInfo) {
-    alert("Aguarde o evento carregar.");
-    return;
-  }
-
-  // Pega a data (YYYY-MM-DD) e a hora (19h30) e formata para o padrão ICS (YYYYMMDDTHHMMSS)
+// Prepara as datas no formato correto
+function getEventDates() {
   const isoDate = currentEventInfo.eventDateIso || new Date().toISOString().split('T')[0];
   const cleanDate = isoDate.replace(/-/g, "");
   
-  let cleanTime = "190000"; // Padrão 19:00 se não tiver hora
+  let cleanTime = "190000"; // Padrão 19h se não tiver hora
   if (currentEventInfo.time) {
     const digits = currentEventInfo.time.replace(/\D/g, "");
-    if (digits.length >= 4) {
-      cleanTime = digits.padEnd(6, "0").slice(0, 6);
-    }
+    if (digits.length >= 4) cleanTime = digits.padEnd(6, "0").slice(0, 6);
   }
 
   const dtStart = `${cleanDate}T${cleanTime}`;
-  // Calcula o fim (4 horas depois, apenas por segurança no calendário)
-  let endHour = parseInt(cleanTime.slice(0,2)) + 4;
+  let endHour = parseInt(cleanTime.slice(0, 2)) + 4;
   let endDateStr = cleanDate;
   if (endHour >= 24) {
     endHour -= 24;
-    // Se virar o dia, avança a data (simplificado, ideal seria usar Date object)
     const d = new Date(isoDate);
     d.setDate(d.getDate() + 1);
     endDateStr = d.toISOString().split('T')[0].replace(/-/g, "");
   }
   const dtEnd = `${endDateStr}T${String(endHour).padStart(2, '0')}${cleanTime.slice(2)}`;
 
-  // Monta o conteúdo do arquivo .ics com os dois alarmes
+  return { dtStart, dtEnd };
+}
+
+// BOTÃO 1: Google Calendar (Abre na web, não baixa nada)
+addToCalendarButton.addEventListener("click", () => {
+  if (!currentEventInfo) return;
+  const { dtStart, dtEnd } = getEventDates();
+  
+  const title = encodeURIComponent(currentEventInfo.name || "Evento");
+  const details = encodeURIComponent(`Seu convite para ${currentEventInfo.name}. Não esqueça de levar o QR Code!`);
+  const location = encodeURIComponent(currentEventInfo.location || "");
+
+  const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dtStart}/${dtEnd}&details=${details}&location=${location}`;
+  window.open(url, "_blank");
+});
+
+// BOTÃO 2: Baixar ICS (Para iPhone/Outlook)
+downloadIcsButton.addEventListener("click", () => {
+  if (!currentEventInfo) return;
+  const { dtStart, dtEnd } = getEventDates();
+
   const icsLines = [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//Confirmae//Evento//PT",
-    "CALSCALE:GREGORIAN",
-    "METHOD:PUBLISH",
-    "BEGIN:VEVENT",
-    `UID:${Date.now()}@confirmae.com.br`,
+    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Confirmae//Evento//PT", "CALSCALE:GREGORIAN", "METHOD:PUBLISH",
+    "BEGIN:VEVENT", `UID:${Date.now()}@confirmae.com.br`,
     `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").split(".")[0]}Z`,
-    `DTSTART:${dtStart}`,
-    `DTEND:${dtEnd}`,
+    `DTSTART:${dtStart}`, `DTEND:${dtEnd}`,
     `SUMMARY:${currentEventInfo.name || "Evento"}`,
     `LOCATION:${currentEventInfo.location || ""}`,
     `DESCRIPTION:Seu convite para ${currentEventInfo.name}. Não esqueça de levar o QR Code!`,
-    // ALARME 1: 1 DIA ANTES
-    "BEGIN:VALARM",
-    "TRIGGER:-P1D",
-    "ACTION:DISPLAY",
-    "DESCRIPTION:Lembrete: O evento é amanhã!",
-    "END:VALARM",
-    // ALARME 2: 2 HORAS ANTES
-    "BEGIN:VALARM",
-    "TRIGGER:-PT2H",
-    "ACTION:DISPLAY",
-    "DESCRIPTION:Lembrete: O evento começa em 2 horas!",
-    "END:VALARM",
-    "END:VEVENT",
-    "END:VCALENDAR"
+    "BEGIN:VALARM", "TRIGGER:-P1D", "ACTION:DISPLAY", "DESCRIPTION:Lembrete: O evento é amanhã!", "END:VALARM",
+    "BEGIN:VALARM", "TRIGGER:-PT2H", "ACTION:DISPLAY", "DESCRIPTION:Lembrete: O evento começa em 2 horas!", "END:VALARM",
+    "END:VEVENT", "END:VCALENDAR"
   ];
 
   const blob = new Blob([icsLines.join("\r\n")], { type: "text/calendar;charset=utf-8" });
@@ -140,7 +132,7 @@ function generateICS() {
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
-}
+});
 
 async function renderGuest() {
   setButtonsDisabled(true);
@@ -167,15 +159,10 @@ async function renderGuest() {
     guestInitial.textContent = getInitials(guest.name);
     renderStatus(guest.status);
 
-    if (guest.status === "accepted") {
-      confirmationMessage.textContent = "Sua presença já está confirmada. O anfitrião ficará feliz em receber você!";
-    } else if (guest.status === "declined") {
-      confirmationMessage.textContent = "Você informou que não poderá comparecer. Obrigado por avisar com antecedência.";
-    } else if (guest.status === "present") {
-      confirmationMessage.textContent = "Sua presença foi confirmada e sua chegada já foi registrada na portaria.";
-    } else {
-      confirmationMessage.textContent = "Confirme se você poderá comparecer. Sua resposta ajuda o anfitrião a organizar melhor o evento.";
-    }
+    if (guest.status === "accepted") confirmationMessage.textContent = "Sua presença já está confirmada. O anfitrião ficará feliz em receber você!";
+    else if (guest.status === "declined") confirmationMessage.textContent = "Você informou que não poderá comparecer. Obrigado por avisar com antecedência.";
+    else if (guest.status === "present") confirmationMessage.textContent = "Sua presença foi confirmada e sua chegada já foi registrada na portaria.";
+    else confirmationMessage.textContent = "Confirme se você poderá comparecer. Sua resposta ajuda o anfitrião a organizar melhor o evento.";
 
     renderInvitationQrCode();
     setButtonsDisabled(false);
@@ -192,42 +179,25 @@ async function renderGuest() {
 async function acceptInvitation() {
   setButtonsDisabled(true);
   try {
-    const updatedGuest = await updateGuest(eventId, guestId, { status: "accepted" });
-    if (!updatedGuest) {
-      alert("Não foi possível confirmar este convite.");
-      await renderGuest();
-      return;
-    }
+    const updated = await updateGuest(eventId, guestId, { status: "accepted" });
+    if (!updated) { alert("Erro ao confirmar."); await renderGuest(); return; }
     await renderGuest();
-    alert("Presença confirmada com sucesso!");
-  } catch (error) {
-    console.error(error);
-    alert("Erro ao confirmar presença.");
-    setButtonsDisabled(false);
-  }
+    alert("Presença confirmada!");
+  } catch (error) { console.error(error); alert("Erro."); setButtonsDisabled(false); }
 }
 
 async function declineInvitation() {
-  if (!confirm("Deseja realmente recusar este convite? O anfitrião será avisado na lista.")) return;
+  if (!confirm("Deseja realmente recusar?")) return;
   setButtonsDisabled(true);
   try {
-    const updatedGuest = await updateGuest(eventId, guestId, { status: "declined" });
-    if (!updatedGuest) {
-      alert("Não foi possível recusar este convite.");
-      await renderGuest();
-      return;
-    }
+    const updated = await updateGuest(eventId, guestId, { status: "declined" });
+    if (!updated) { alert("Erro ao recusar."); await renderGuest(); return; }
     await renderGuest();
-    alert("Resposta registrada. Obrigado por avisar!");
-  } catch (error) {
-    console.error(error);
-    alert("Erro ao registrar resposta.");
-    setButtonsDisabled(false);
-  }
+    alert("Resposta registrada.");
+  } catch (error) { console.error(error); alert("Erro."); setButtonsDisabled(false); }
 }
 
 acceptButton.addEventListener("click", acceptInvitation);
 declineButton.addEventListener("click", declineInvitation);
-addToCalendarButton.addEventListener("click", generateICS);
 
 renderGuest();
