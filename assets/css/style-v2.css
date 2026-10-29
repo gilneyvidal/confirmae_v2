@@ -333,3 +333,11 @@ textarea:focus {
     transform: none !important;
   }
 }
+/* =========================================================
+   CORREÇÃO DE EMERGÊNCIA — força visibilidade
+   Pode remover depois que diagnosticarmos o problema real.
+   ========================================================= */
+.reveal-up {
+  opacity: 1 !important;
+  transform: none !important;
+}
