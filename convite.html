@@ -42,16 +42,13 @@
         <div class="invitation-cover">
           <span class="eyebrow">Convite especial</span>
           <h1 id="guestGreeting">Carregando convite...</h1>
-          <p id="eventIntro">
-            Aguarde enquanto buscamos as informações do seu convite.
-          </p>
+          <p id="eventIntro">Aguarde enquanto buscamos as informações do seu convite.</p>
         </div>
 
         <div class="invitation-body">
           <div class="event-info-box">
             <span class="event-type" id="eventType">Evento</span>
             <h2 id="eventName">Carregando evento...</h2>
-
             <ul class="event-details-list">
               <li><strong>Data:</strong> <span id="eventDate">--</span></li>
               <li><strong>Horário:</strong> <span id="eventTime">--</span></li>
@@ -72,10 +69,12 @@
               <button type="button" class="btn btn-danger" id="declineButton">Não poderei comparecer</button>
             </div>
 
-            <!-- NOVO BOTÃO DE AGENDA -->
-            <div class="hero-actions" style="margin-top: 24px; border-top: 1px solid rgba(172,173,179,0.2); padding-top: 24px;">
-              <button type="button" class="btn btn-secondary" id="addToCalendarButton" style="width: 100%;">
-                📅 Salvar na Agenda
+            <div style="margin-top: 24px; border-top: 1px solid rgba(172,173,179,0.2); padding-top: 24px;">
+              <button type="button" class="btn btn-secondary" id="addToCalendarButton" style="width: 100%; border-color: rgba(33,189,193,0.4);">
+                📅 Adicionar ao Google Agenda
+              </button>
+              <button type="button" class="btn btn-secondary" id="downloadIcsButton" style="width: 100%; margin-top: 8px; font-size: 0.8rem; opacity: 0.7;">
+                Baixar arquivo para iPhone/Outlook
               </button>
             </div>
 
