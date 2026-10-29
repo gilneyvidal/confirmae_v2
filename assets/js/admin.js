@@ -66,11 +66,11 @@ const qrCodeBox = document.getElementById("qrCodeBox");
 const copyQrLinkButton = document.getElementById("copyQrLinkButton");
 const downloadQrButton = document.getElementById("downloadQrButton");
 
-// NOVOS ELEMENTOS
 const pickContactButton = document.getElementById("pickContactButton");
 const guestCreatedModal = document.getElementById("guestCreatedModal");
 const closeGuestCreatedModal = document.getElementById("closeGuestCreatedModal");
 const createdGuestName = document.getElementById("createdGuestName");
+const createdGuestPhoneNote = document.getElementById("createdGuestPhoneNote");
 const sendWhatsappCreatedBtn = document.getElementById("sendWhatsappCreatedBtn");
 const copyCreatedLinkBtn = document.getElementById("copyCreatedLinkBtn");
 
@@ -84,46 +84,24 @@ let lastCreatedGuest = null;
 eventIdInput.value = currentEventId;
 eventPanelPinInput.value = getQueryParam("pin") || "";
 
-// LOGICA API DE CONTATOS (ANDROID)
 if ('contacts' in navigator && 'ContactsManager' in window) {
   pickContactButton.hidden = false;
   pickContactButton.addEventListener("click", async () => {
     try {
-      const props = ['name', 'tel'];
-      const opts = { multiple: false };
-      const contacts = await navigator.contacts.select(props, opts);
-      
+      const contacts = await navigator.contacts.select(['name', 'tel'], { multiple: false });
       if (contacts.length > 0) {
         const contact = contacts[0];
-        if (contact.name && contact.name.length > 0) {
-          document.getElementById("guestNameInput").value = contact.name[0];
-        }
-        if (contact.tel && contact.tel.length > 0) {
-          document.getElementById("guestPhoneInput").value = contact.tel[0];
-        }
+        if (contact.name && contact.name.length > 0) document.getElementById("guestNameInput").value = contact.name[0];
+        if (contact.tel && contact.tel.length > 0) document.getElementById("guestPhoneInput").value = contact.tel[0];
       }
-    } catch (err) {
-      console.warn("Busca de contato cancelada ou não suportada.", err);
-    }
+    } catch (err) { console.warn("Busca cancelada.", err); }
   });
 }
 
-function getPanelStorageKey(eventId) {
-  return `confirmae_panel_pin_${eventId}`;
-}
-
-function hideEventWorkspace() {
-  eventWorkspaceSections.forEach((section) => { section.hidden = true; });
-}
-
-function showEventWorkspace() {
-  accessLockedSection.hidden = true;
-  eventWorkspaceSections.forEach((section) => { section.hidden = false; });
-}
-
-function setTableLoading(message) {
-  guestTableBody.innerHTML = `<tr><td colspan="5">${escapeHtml(message)}</td></tr>`;
-}
+function getPanelStorageKey(eventId) { return `confirmae_panel_pin_${eventId}`; }
+function hideEventWorkspace() { eventWorkspaceSections.forEach((section) => { section.hidden = true; }); }
+function showEventWorkspace() { accessLockedSection.hidden = true; eventWorkspaceSections.forEach((section) => { section.hidden = false; }); }
+function setTableLoading(message) { guestTableBody.innerHTML = `<tr><td colspan="5">${escapeHtml(message)}</td></tr>`; }
 
 function isPanelPinValid(eventInfo) {
   if (currentEventId === CONFIRMAE_THEME.defaultEventId) return true;
@@ -134,9 +112,7 @@ function isPanelPinValid(eventInfo) {
 }
 
 function rememberPanelPin(eventInfo) {
-  if (eventInfo && eventInfo.panelPin) {
-    sessionStorage.setItem(getPanelStorageKey(currentEventId), eventInfo.panelPin);
-  }
+  if (eventInfo && eventInfo.panelPin) sessionStorage.setItem(getPanelStorageKey(currentEventId), eventInfo.panelPin);
 }
 
 function showAccessLocked(eventId) {
@@ -146,7 +122,6 @@ function showAccessLocked(eventId) {
   pixKeyText.textContent = BUSINESS_CONFIG.pixKey;
   pixHolderText.textContent = BUSINESS_CONFIG.pixHolder;
   unlockWhatsappLink.href = buildWhatsappUnlockLink(eventId);
-
   accessLockedSection.hidden = false;
   hideEventWorkspace();
   updateStats([]);
@@ -182,15 +157,13 @@ function formatDateIsoToLongText(dateIso) {
   if (!dateIso) return "";
   const [year, month, day] = String(dateIso).split("-").map(Number);
   if (!year || !month || !day) return "";
-  const date = new Date(year, month - 1, day);
-  return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
+  return new Date(year, month - 1, day).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
 }
 
 function formatDateTimeForCsv(value) {
   if (!value) return "";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return String(value);
-  return date.toLocaleString("pt-BR");
+  return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString("pt-BR");
 }
 
 function sanitizeFileName(value) {
@@ -206,58 +179,37 @@ function createCsvCell(value) {
 function downloadCsv(filename, rows) {
   const csvContent = rows.map((row) => row.map(createCsvCell).join(";")).join("\n");
   const blob = new Blob([`\ufeff${csvContent}`], { type: "text/csv;charset=utf-8;" });
-  const temporaryUrl = URL.createObjectURL(blob);
-  const downloadLink = document.createElement("a");
-  downloadLink.href = temporaryUrl;
-  downloadLink.download = filename;
-  document.body.appendChild(downloadLink);
-  downloadLink.click();
-  document.body.removeChild(downloadLink);
-  URL.revokeObjectURL(temporaryUrl);
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }
 
 function getGuestsForExport(type) {
-  if (type === "accepted") return currentGuests.filter((guest) => guest.status === "accepted");
-  if (type === "present") return currentGuests.filter((guest) => guest.status === "present");
-  if (type === "declined") return currentGuests.filter((guest) => guest.status === "declined");
+  if (type === "accepted") return currentGuests.filter((g) => g.status === "accepted");
+  if (type === "present") return currentGuests.filter((g) => g.status === "present");
+  if (type === "declined") return currentGuests.filter((g) => g.status === "declined");
   return currentGuests;
 }
 
 function getExportLabel(type) {
-  const labels = { all: "todos", accepted: "confirmados", present: "presentes", declined: "recusados" };
-  return labels[type] || "convidados";
+  return { all: "todos", accepted: "confirmados", present: "presentes", declined: "recusados" }[type] || "convidados";
 }
 
 function exportGuests(type) {
-  const guestsToExport = getGuestsForExport(type);
-  const exportLabel = getExportLabel(type);
-
-  if (!guestsToExport.length) {
-    alert(`Nenhum convidado encontrado para exportar em: ${exportLabel}.`);
-    return;
-  }
-
+  const list = getGuestsForExport(type);
+  if (!list.length) return alert(`Nenhum convidado encontrado para exportar em: ${getExportLabel(type)}.`);
   const header = ["Evento", "ID do evento", "Nome do convidado", "Telefone", "E-mail", "Acompanhantes permitidos", "Status", "Presente com liberação manual", "Data/hora de entrada", "ID do convite", "Link do convite"];
-  const rows = guestsToExport.map((guest) => {
-    const statusInfo = getGuestStatusInfo(guest);
-    const invitationLink = buildInvitationLink(guest.eventId, guest.id);
-    return [
-      currentEventInfo?.name || currentEventId,
-      currentEventId,
-      guest.name || "",
-      guest.phone || "",
-      guest.email || "",
-      guest.companions || 0,
-      statusInfo.label,
-      guest.gateOverride === true ? "Sim" : "Não",
-      formatDateTimeForCsv(guest.arrivedAt),
-      guest.id || "",
-      invitationLink
-    ];
-  });
-
-  const fileName = `confirmae-${sanitizeFileName(currentEventId)}-${exportLabel}.csv`;
-  downloadCsv(fileName, [header, ...rows]);
+  const rows = list.map((guest) => [
+    currentEventInfo?.name || currentEventId, currentEventId, guest.name || "", guest.phone || "", guest.email || "",
+    guest.companions || 0, getGuestStatusInfo(guest).label, guest.gateOverride === true ? "Sim" : "Não",
+    formatDateTimeForCsv(guest.arrivedAt), guest.id || "", buildInvitationLink(guest.eventId, guest.id)
+  ]);
+  downloadCsv(`confirmae-${sanitizeFileName(currentEventId)}-${getExportLabel(type)}.csv`, [header, ...rows]);
 }
 
 function renderEventConfig(eventInfo) {
@@ -272,43 +224,26 @@ function renderEventConfig(eventInfo) {
 }
 
 async function renderGuests() {
-  setTableLoading("Carregando convidados do Firebase...");
+  setTableLoading("Carregando convidados...");
   const guests = await getGuestsByEvent(currentEventId);
   currentGuests = guests;
   updateStats(guests);
-
   if (!guests.length) {
     guestTableBody.innerHTML = `<tr><td colspan="5">Nenhum convidado cadastrado para este evento.</td></tr>`;
     return;
   }
-
   guestTableBody.innerHTML = guests.map((guest) => {
     const statusInfo = getGuestStatusInfo(guest);
-    const invitationLink = buildInvitationLink(guest.eventId, guest.id);
+    const link = buildInvitationLink(guest.eventId, guest.id);
     return `
       <tr>
-        <td>
-          <div class="guest-name-cell">
-            <strong>${escapeHtml(guest.name)}</strong>
-            <small>ID: ${escapeHtml(guest.id)}</small>
-          </div>
-        </td>
-        <td>
-          <div class="guest-contact-cell">
-            <strong>${escapeHtml(guest.phone || "Sem telefone")}</strong>
-            <small>${escapeHtml(guest.email || "Sem e-mail")}</small>
-          </div>
-        </td>
-        <td>
-          <span class="status-pill status-pill-${escapeHtml(statusInfo.className)}">
-            <span class="status-dot status-dot-${escapeHtml(statusInfo.className)}"></span>
-            ${escapeHtml(statusInfo.label)}
-          </span>
-        </td>
+        <td><div class="guest-name-cell"><strong>${escapeHtml(guest.name)}</strong><small>ID: ${escapeHtml(guest.id)}</small></div></td>
+        <td><div class="guest-contact-cell"><strong>${escapeHtml(guest.phone || "Sem telefone")}</strong><small>${escapeHtml(guest.email || "Sem e-mail")}</small></div></td>
+        <td><span class="status-pill status-pill-${escapeHtml(statusInfo.className)}"><span class="status-dot status-dot-${escapeHtml(statusInfo.className)}"></span>${escapeHtml(statusInfo.label)}</span></td>
         <td>
           <div class="invitation-actions">
-            <button type="button" class="btn btn-secondary btn-small" data-action="copy-link" data-link="${escapeHtml(invitationLink)}">Copiar link</button>
-            <button type="button" class="btn btn-primary btn-small" data-action="show-qr" data-link="${escapeHtml(invitationLink)}" data-guest-name="${escapeHtml(guest.name)}">Ver QR</button>
+            <button type="button" class="btn btn-secondary btn-small" data-action="copy-link" data-link="${escapeHtml(link)}">Copiar link</button>
+            <button type="button" class="btn btn-primary btn-small" data-action="show-qr" data-link="${escapeHtml(link)}" data-guest-name="${escapeHtml(guest.name)}">Ver QR</button>
           </div>
         </td>
         <td>
@@ -326,7 +261,6 @@ async function loadCurrentEvent(options = {}) {
   const { silent = false } = options;
   currentEventId = eventIdInput.value.trim() || CONFIRMAE_THEME.defaultEventId;
   eventIdInput.value = currentEventId;
-
   panelPinHelpText.textContent = "Verificando acesso...";
   loadEventButton.disabled = true;
   loadEventButton.textContent = "Carregando...";
@@ -334,18 +268,11 @@ async function loadCurrentEvent(options = {}) {
   try {
     const eventInfo = await getEvent(currentEventId);
     currentEventInfo = eventInfo;
-
-    if (!eventInfo || eventInfo.accessEnabled === false) {
-      showAccessLocked(currentEventId);
-      return;
-    }
-
+    if (!eventInfo || eventInfo.accessEnabled === false) return showAccessLocked(currentEventId);
     if (!isPanelPinValid(eventInfo)) {
-      if (silent) showPinRequiredMessage();
-      else showPanelPinDenied();
+      if (silent) showPinRequiredMessage(); else showPanelPinDenied();
       return;
     }
-
     rememberPanelPin(eventInfo);
     panelPinHelpText.textContent = "Acesso liberado para este evento.";
     renderEventConfig(eventInfo);
@@ -354,10 +281,7 @@ async function loadCurrentEvent(options = {}) {
   } catch (error) {
     console.error(error);
     if (error.code === "event-not-released") showAccessLocked(currentEventId);
-    else {
-      alert("Não foi possível carregar o evento. Confira o Firebase e tente novamente.");
-      showAccessLocked(currentEventId);
-    }
+    else { alert("Não foi possível carregar o evento."); showAccessLocked(currentEventId); }
   } finally {
     loadEventButton.disabled = false;
     loadEventButton.textContent = "Acessar evento";
@@ -371,13 +295,8 @@ function openQrModal(guestName, invitationLink) {
   qrGuestName.textContent = guestName;
   qrGuestLink.textContent = invitationLink;
   qrCodeBox.innerHTML = "";
-
-  if (typeof QRCode === "undefined") {
-    qrCodeBox.innerHTML = `<p>Não foi possível carregar o gerador de QR Code. Atualize a página.</p>`;
-  } else {
-    new QRCode(qrCodeBox, { text: invitationLink, width: 220, height: 220, colorDark: "#221b35", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
-  }
-
+  if (typeof QRCode === "undefined") qrCodeBox.innerHTML = `<p>Erro ao carregar gerador.</p>`;
+  else new QRCode(qrCodeBox, { text: invitationLink, width: 220, height: 220, colorDark: "#221b35", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
   qrModal.classList.add("is-open");
   qrModal.setAttribute("aria-hidden", "false");
 }
@@ -390,21 +309,40 @@ function closeModal() {
   qrCodeBox.innerHTML = "";
 }
 
-function downloadCurrentQrCode() {
+// NOVA FUNÇÃO PARA SALVAR NA GALERIA (USANDO SHARE API)
+async function downloadCurrentQrCode() {
   const canvas = qrCodeBox.querySelector("canvas");
   const image = qrCodeBox.querySelector("img");
   let imageUrl = canvas ? canvas.toDataURL("image/png") : (image ? image.src : "");
 
-  if (!imageUrl) {
-    alert("Não foi possível baixar o QR Code. Gere o QR novamente.");
-    return;
+  if (!imageUrl) return alert("Não foi possível gerar o QR Code.");
+
+  try {
+    if (navigator.share && navigator.canShare) {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const safeName = String(currentQrGuestName || "convidado").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      const file = new File([blob], `qrcode-${safeName}.png`, { type: 'image/png' });
+      
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'QR Code do Convite',
+          text: 'Salve na galeria ou envie para o convidado.'
+        });
+        return;
+      }
+    }
+  } catch (error) {
+    console.warn("Share API falhou, usando download.", error);
   }
 
-  const safeGuestName = String(currentQrGuestName || "convidado").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-  const downloadLink = document.createElement("a");
-  downloadLink.href = imageUrl;
-  downloadLink.download = `qrcode-${safeGuestName || "convidado"}.png`;
-  downloadLink.click();
+  // Fallback antigo
+  const safeGuestName = String(currentQrGuestName || "convidado").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  const link = document.createElement("a");
+  link.href = imageUrl;
+  link.download = `qrcode-${safeGuestName}.png`;
+  link.click();
 }
 
 async function copyTextToClipboard(text, successButton = null, defaultText = "") {
@@ -419,32 +357,22 @@ async function copyTextToClipboard(text, successButton = null, defaultText = "")
 
 async function handleEventConfigSubmit(event) {
   event.preventDefault();
-  const submitButton = eventConfigForm.querySelector("button[type='submit']");
-  submitButton.disabled = true;
-  submitButton.textContent = "Salvando...";
-
+  const btn = eventConfigForm.querySelector("button[type='submit']");
+  btn.disabled = true; btn.textContent = "Salvando...";
   const eventDateIso = eventDateIsoInput.value.trim();
   const dateText = eventDateInput.value.trim() || formatDateIsoToLongText(eventDateIso);
 
   try {
     await saveEvent(currentEventId, {
-      name: eventNameInput.value.trim(),
-      type: eventTypeInput.value.trim(),
-      hostName: eventHostInput.value.trim(),
-      eventDateIso,
-      date: dateText,
-      time: eventTimeInput.value.trim(),
-      location: eventLocationInput.value.trim(),
-      intro: eventIntroInput.value.trim()
+      name: eventNameInput.value.trim(), type: eventTypeInput.value.trim(), hostName: eventHostInput.value.trim(),
+      eventDateIso, date: dateText, time: eventTimeInput.value.trim(), location: eventLocationInput.value.trim(), intro: eventIntroInput.value.trim()
     });
-    alert("Dados do evento salvos com sucesso!");
+    alert("Dados do evento salvos!");
     await loadCurrentEvent({ silent: true });
   } catch (error) {
-    console.error(error);
-    alert("Não foi possível salvar os dados do evento.");
+    console.error(error); alert("Erro ao salvar.");
   } finally {
-    submitButton.disabled = false;
-    submitButton.textContent = "Salvar dados do evento";
+    btn.disabled = false; btn.textContent = "Salvar dados do evento";
   }
 }
 
@@ -456,11 +384,10 @@ async function handleGuestFormSubmit(event) {
   const companionsInput = document.getElementById("guestCompanionsInput");
   const name = nameInput.value.trim();
 
-  if (!name) { alert("Informe o nome do convidado."); return; }
+  if (!name) return alert("Informe o nome.");
 
   if (currentEventId !== CONFIRMAE_THEME.defaultEventId && currentEventInfo && currentEventInfo.guestLimit !== null && currentEventInfo.guestLimit !== undefined && currentGuests.length >= Number(currentEventInfo.guestLimit)) {
-    alert(`Seu plano permite até ${currentEventInfo.guestLimit} convidados.\n\nPara cadastrar mais pessoas, solicite upgrade pelo WhatsApp.`);
-    return;
+    return alert(`Seu plano permite até ${currentEventInfo.guestLimit} convidados.`);
   }
 
   const submitButton = guestForm.querySelector("button[type='submit']");
@@ -469,42 +396,39 @@ async function handleGuestFormSubmit(event) {
 
   try {
     const newGuest = await addGuest({
-      eventId: currentEventId,
-      name,
-      phone: phoneInput.value.trim(),
-      email: emailInput.value.trim(),
-      companions: companionsInput.value
+      eventId: currentEventId, name, phone: phoneInput.value.trim(), email: emailInput.value.trim(), companions: companionsInput.value
     });
-
-    guestForm.reset();
-    companionsInput.value = 0;
+    guestForm.reset(); companionsInput.value = 0;
     await renderGuests();
 
-    // LOGICA DO NOVO MODAL DE ENVIO
     lastCreatedGuest = newGuest;
     createdGuestName.textContent = newGuest.name;
     
-    const invitationLink = buildInvitationLink(newGuest.eventId, newGuest.id);
-    const waMessage = encodeURIComponent(`Olá, ${newGuest.name}! Você está convidado(a) para o evento "${currentEventInfo.name}". Por favor, confirme sua presença pelo link abaixo:\n\n${invitationLink}`);
+    const link = buildInvitationLink(newGuest.eventId, newGuest.id);
+    const msg = encodeURIComponent(`Olá, ${newGuest.name}! Você está convidado(a) para o evento "${currentEventInfo.name}". Por favor, confirme sua presença pelo link abaixo:\n\n${link}`);
     
-    sendWhatsappCreatedBtn.onclick = () => {
-      window.open(`https://wa.me/?text=${waMessage}`, "_blank");
-    };
+    let whatsappUrl = `https://wa.me/?text=${msg}`;
+    if (newGuest.phone) {
+      const digits = newGuest.phone.replace(/\D/g, "");
+      if (digits.length >= 10) {
+        const intlPhone = digits.startsWith("55") ? digits : `55${digits}`;
+        whatsappUrl = `https://wa.me/${intlPhone}?text=${msg}`;
+        createdGuestPhoneNote.textContent = `Enviar para: ${newGuest.phone}`;
+      }
+    } else {
+      createdGuestPhoneNote.textContent = "Nenhum telefone cadastrado. Você escolherá o contato no WhatsApp.";
+    }
 
-    copyCreatedLinkBtn.onclick = () => {
-      copyTextToClipboard(invitationLink, copyCreatedLinkBtn, "Copiar link do convite");
-    };
+    sendWhatsappCreatedBtn.onclick = () => window.open(whatsappUrl, "_blank");
+    copyCreatedLinkBtn.onclick = () => copyTextToClipboard(link, copyCreatedLinkBtn, "Copiar link");
 
     guestCreatedModal.classList.add("is-open");
     guestCreatedModal.setAttribute("aria-hidden", "false");
 
   } catch (error) {
     console.error(error);
-    if (error.code === "guest-limit-reached") {
-      alert(`Seu plano permite até ${error.limit} convidados.\n\nPara cadastrar mais pessoas, solicite upgrade pelo WhatsApp.`);
-    } else {
-      alert("Não foi possível criar o convite. Confira o Firebase e tente novamente.");
-    }
+    if (error.code === "guest-limit-reached") alert(`Limite atingido: ${error.limit}`);
+    else alert("Erro ao criar convite.");
   } finally {
     submitButton.disabled = false;
     submitButton.textContent = "Criar convite";
@@ -512,63 +436,34 @@ async function handleGuestFormSubmit(event) {
 }
 
 async function handleTableClick(event) {
-  const clickedButton = event.target.closest("button");
-  if (!clickedButton) return;
+  const btn = event.target.closest("button");
+  if (!btn) return;
+  const action = btn.dataset.action;
 
-  const action = clickedButton.dataset.action;
-  const guestId = clickedButton.dataset.guestId;
-
-  if (action === "copy-link") {
-    await copyTextToClipboard(clickedButton.dataset.link, clickedButton, "Copiar link");
-    return;
-  }
-
-  if (action === "show-qr") {
-    openQrModal(clickedButton.dataset.guestName, clickedButton.dataset.link);
-    return;
-  }
-
+  if (action === "copy-link") return await copyTextToClipboard(btn.dataset.link, btn, "Copiar link");
+  if (action === "show-qr") return openQrModal(btn.dataset.guestName, btn.dataset.link);
   if (action === "mark-waiting") {
-    clickedButton.disabled = true;
-    clickedButton.textContent = "Salvando...";
-    try {
-      await updateGuest(currentEventId, guestId, { status: "waiting", gateOverride: false });
-      await renderGuests();
-    } catch (error) {
-      console.error(error);
-      alert("Não foi possível atualizar o status.");
-    }
+    btn.disabled = true; btn.textContent = "Salvando...";
+    try { await updateGuest(currentEventId, btn.dataset.guestId, { status: "waiting", gateOverride: false }); await renderGuests(); }
+    catch (e) { console.error(e); alert("Erro."); }
     return;
   }
-
   if (action === "remove") {
-    if (!confirm("Tem certeza que deseja remover este convidado?")) return;
-    try {
-      await removeGuest(currentEventId, guestId);
-      await renderGuests();
-    } catch (error) {
-      console.error(error);
-      alert("Não foi possível remover o convidado.");
-    }
+    if (!confirm("Remover este convidado?")) return;
+    try { await removeGuest(currentEventId, btn.dataset.guestId); await renderGuests(); }
+    catch (e) { console.error(e); alert("Erro."); }
   }
 }
 
 async function handleResetDemo() {
-  if (!confirm("Isso vai restaurar os convidados de demonstração no Firebase. Os dados personalizados do evento serão mantidos. Deseja continuar?")) return;
-  resetDemoButton.disabled = true;
-  resetDemoButton.textContent = "Restaurando...";
+  if (!confirm("Restaurar a demonstração?")) return;
+  resetDemoButton.disabled = true; resetDemoButton.textContent = "Restaurando...";
   try {
     await resetDemoGuests();
-    currentEventId = CONFIRMAE_THEME.defaultEventId;
-    eventIdInput.value = currentEventId;
+    currentEventId = CONFIRMAE_THEME.defaultEventId; eventIdInput.value = currentEventId;
     await loadCurrentEvent({ silent: true });
-  } catch (error) {
-    console.error(error);
-    alert("Não foi possível restaurar a demonstração.");
-  } finally {
-    resetDemoButton.disabled = false;
-    resetDemoButton.textContent = "Restaurar demo";
-  }
+  } catch (e) { console.error(e); alert("Erro."); }
+  finally { resetDemoButton.disabled = false; resetDemoButton.textContent = "Restaurar demo"; }
 }
 
 eventConfigForm.addEventListener("submit", handleEventConfigSubmit);
@@ -586,40 +481,26 @@ eventDateIsoInput.addEventListener("change", () => {
 });
 
 copyPixButton.addEventListener("click", () => copyTextToClipboard(BUSINESS_CONFIG.pixKey, copyPixButton, "Copiar chave Pix"));
-
 closeQrModal.addEventListener("click", closeModal);
-qrModal.addEventListener("click", (event) => { if (event.target === qrModal) closeModal(); });
+qrModal.addEventListener("click", (e) => { if (e.target === qrModal) closeModal(); });
 copyQrLinkButton.addEventListener("click", () => copyTextToClipboard(currentQrLink, copyQrLinkButton, "Copiar link"));
 downloadQrButton.addEventListener("click", downloadCurrentQrCode);
 
-// Fechar o novo modal
-closeGuestCreatedModal.addEventListener("click", () => {
-  guestCreatedModal.classList.remove("is-open");
-  guestCreatedModal.setAttribute("aria-hidden", "true");
-});
-guestCreatedModal.addEventListener("click", (event) => {
-  if (event.target === guestCreatedModal) {
-    guestCreatedModal.classList.remove("is-open");
-    guestCreatedModal.setAttribute("aria-hidden", "true");
-  }
-});
+closeGuestCreatedModal.addEventListener("click", () => { guestCreatedModal.classList.remove("is-open"); guestCreatedModal.setAttribute("aria-hidden", "true"); });
+guestCreatedModal.addEventListener("click", (e) => { if (e.target === guestCreatedModal) { guestCreatedModal.classList.remove("is-open"); guestCreatedModal.setAttribute("aria-hidden", "true"); } });
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
     if (qrModal.classList.contains("is-open")) closeModal();
-    if (guestCreatedModal.classList.contains("is-open")) {
-      guestCreatedModal.classList.remove("is-open");
-      guestCreatedModal.setAttribute("aria-hidden", "true");
-    }
+    if (guestCreatedModal.classList.contains("is-open")) { guestCreatedModal.classList.remove("is-open"); guestCreatedModal.setAttribute("aria-hidden", "true"); }
   }
 });
 
 hideEventWorkspace();
 (function tryInitialLoad() {
-  const initialEventId = eventIdInput.value.trim() || CONFIRMAE_THEME.defaultEventId;
-  const pinInInput = eventPanelPinInput.value.trim();
-  const pinInStorage = sessionStorage.getItem(getPanelStorageKey(initialEventId));
-  const canAutoLoad = initialEventId === CONFIRMAE_THEME.defaultEventId || Boolean(pinInInput) || Boolean(pinInStorage);
-  if (canAutoLoad) loadCurrentEvent({ silent: true });
+  const id = eventIdInput.value.trim() || CONFIRMAE_THEME.defaultEventId;
+  const pin = eventPanelPinInput.value.trim();
+  const stored = sessionStorage.getItem(getPanelStorageKey(id));
+  if (id === CONFIRMAE_THEME.defaultEventId || Boolean(pin) || Boolean(stored)) loadCurrentEvent({ silent: true });
   else showPinRequiredMessage();
 })();
