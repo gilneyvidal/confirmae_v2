@@ -18,6 +18,7 @@ const guestToken = document.getElementById("guestToken");
 const invitationQrCodeBox = document.getElementById("invitationQrCodeBox");
 const addToCalendarButton = document.getElementById("addToCalendarButton");
 const downloadIcsButton = document.getElementById("downloadIcsButton");
+const saveQrButton = document.getElementById("saveQrButton");
 
 const eventId = getQueryParam("evento") || CONFIRMAE_THEME.defaultEventId;
 const guestId = getQueryParam("convidado") || "convidado-demo";
@@ -44,7 +45,6 @@ function renderEventInfo(eventInfo) {
   const loc = eventInfo.location || "Local a definir";
   eventLocation.textContent = loc;
   if (eventInfo.location) {
-    // Transforma o endereço em um link do Google Maps
     eventLocation.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(eventInfo.location)}`;
   } else {
     eventLocation.removeAttribute("href");
@@ -59,6 +59,57 @@ function renderInvitationQrCode() {
   if (typeof QRCode === "undefined") { invitationQrCodeBox.innerHTML = `<p class="small-note">Erro ao carregar QR.</p>`; return; }
   new QRCode(invitationQrCodeBox, { text: window.location.href, width: 220, height: 220, colorDark: "#221b35", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
 }
+
+// FUNÇÃO DE SALVAR CORRIGIDA E BLINDADA
+async function saveQrToGallery() {
+  const canvas = invitationQrCodeBox.querySelector("canvas");
+  
+  // Se a lib gerou apenas uma imagem (raro, mas acontece)
+  if (!canvas) {
+    const img = invitationQrCodeBox.querySelector("img");
+    if (img && img.src) {
+      const a = document.createElement("a");
+      a.href = img.src;
+      a.download = `qrcode-${guestName.textContent.replace(/\s+/g, '-').toLowerCase()}.png`;
+      a.click();
+      return;
+    }
+    return alert("Não foi possível gerar a imagem do QR Code. Recarregue a página.");
+  }
+
+  // A conversão correta e universal: canvas.toBlob
+  canvas.toBlob(async (blob) => {
+    if (!blob) return alert("Erro ao converter o QR Code.");
+
+    const safeName = String(guestName.textContent || "convidado").normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').toLowerCase();
+    const file = new File([blob], `qrcode-${safeName}.png`, { type: 'image/png' });
+
+    try {
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'QR Code do Convite',
+          text: 'Salve na galeria ou envie para o convidado.'
+        });
+        return;
+      }
+    } catch (error) {
+      console.warn("Compartilhamento nativo falhou, usando download padrão.", error);
+    }
+
+    // Fallback: download direto se o compartilhamento não estiver disponível
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `qrcode-${safeName}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, "image/png");
+}
+
+saveQrButton.addEventListener("click", saveQrToGallery);
 
 function getEventDates() {
   const isoDate = currentEventInfo.eventDateIso || new Date().toISOString().split('T')[0];
