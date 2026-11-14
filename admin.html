@@ -1,60 +1,194 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#0D1014" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Confirmaê" />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Verificando painel...</title>
-  <style>
-    body { background: #0D1014; color: #21BDC1; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: sans-serif; }
-    .spinner { width: 40px; height: 40px; border: 4px solid rgba(33, 189, 193, 0.2); border-top-color: #21BDC1; border-radius: 50%; animation: spin 1s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-  </style>
+  <title>Painel do Anfitrião | Confirmaê</title>
+  <link rel="icon" type="image/png" href="assets/img/confirmae-icon.png" />
+  <link rel="apple-touch-icon" href="assets/img/confirmae-icon.png" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/style-v2.css" />
 </head>
-<body>
-  <div class="spinner"></div>
+<body class="page-admin">
+  <header class="site-header">
+    <div class="container header-content">
+      <a href="index.html" class="brand"><span class="brand-icon">✓</span><span class="brand-text">Confirmaê</span></a>
+      <nav class="main-nav">
+        <a href="index.html">Início</a>
+        <a href="index.html#contratar">Criar evento</a>
+        <a href="convite.html?evento=evento-demo&convidado=convidado-demo">Convite</a>
+        <a href="portaria.html">Portaria</a>
+      </nav>
+    </div>
+  </header>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  <main class="dashboard-main">
+    <section class="container dashboard-header">
+      <div>
+        <span class="eyebrow">Painel do anfitrião</span>
+        <h1>Acesse seu evento</h1>
+        <p>Informe o ID e o PIN do painel para personalizar, cadastrar convidados, gerar QR Codes e acompanhar confirmações.</p>
+        <div class="hero-actions"><a href="index.html#contratar" class="btn btn-primary">Criar/contratar novo evento</a></div>
+      </div>
+      <div class="event-selector-card">
+        <label for="eventIdInput">ID do evento</label>
+        <input type="text" id="eventIdInput" value="evento-demo" />
+        <label for="eventPanelPinInput">PIN do painel</label>
+        <input type="password" id="eventPanelPinInput" placeholder="Digite o PIN do painel" />
+        <small id="panelPinHelpText">O PIN é enviado pelo WhatsApp após a liberação do evento.</small>
+        <button type="button" class="btn btn-secondary" id="loadEventButton">Acessar evento</button>
+      </div>
+    </section>
 
-    const firebaseConfigV1 = {
-      apiKey: "AIzaSyAd_csKRHD2dEzyszjzCC3bTJvpHH_YUf8",
-      authDomain: "confirmae-e629a.firebaseapp.com",
-      projectId: "confirmae-e629a",
-      storageBucket: "confirmae-e629a.firebasestorage.app",
-      messagingSenderId: "372030861002",
-      appId: "1:372030861002:web:d688248aef7a5297b8ce33"
-    };
+    <section class="container" id="accessLockedSection" hidden>
+      <article class="panel-card">
+        <div class="panel-heading"><div><span class="eyebrow">Evento bloqueado</span><h2>Liberação necessária</h2></div></div>
+        <div class="features-grid">
+          <article class="feature-card"><div class="feature-icon">ID</div><h3 id="lockedEventIdText">evento</h3><p>Este ID ainda não foi liberado para uso no Confirmaê.</p></article>
+          <article class="feature-card"><div class="feature-icon">PIX</div><h3 id="unlockPriceText">Planos disponíveis</h3><p><strong>Banco:</strong> <span id="pixBankText">Mercado Pago</span><br /><strong>Chave:</strong> <span id="pixKeyText">11968649673</span><br /><strong>Nome:</strong> <span id="pixHolderText">Gilney Wesley Aparecido Vidal</span></p></article>
+          <article class="feature-card"><div class="feature-icon">WA</div><h3>Enviar comprovante</h3><p>Após o pagamento, envie o comprovante pelo WhatsApp para liberação manual.</p></article>
+        </div>
+        <div class="hero-actions">
+          <a href="#" class="btn btn-primary" id="unlockWhatsappLink" target="_blank" rel="noopener">Falar no WhatsApp</a>
+          <button type="button" class="btn btn-secondary" id="copyPixButton">Copiar chave Pix</button>
+          <a href="index.html#contratar" class="btn btn-secondary">Ver explicação completa</a>
+        </div>
+      </article>
+    </section>
 
-    const appV1 = initializeApp(firebaseConfigV1, "appV1");
-    const dbV1 = getFirestore(appV1);
+    <section class="container stats-grid" data-event-workspace hidden>
+      <article class="stat-card"><span>Total</span><strong id="totalGuests">0</strong></article>
+      <article class="stat-card"><span>Aguardando</span><strong id="waitingGuests">0</strong></article>
+      <article class="stat-card"><span>Aceitos</span><strong id="acceptedGuests">0</strong></article>
+      <article class="stat-card"><span>Recusados</span><strong id="declinedGuests">0</strong></article>
+      <article class="stat-card"><span>Presentes</span><strong id="presentGuests">0</strong></article>
+    </section>
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const eventId = urlParams.get("evento");
+    <section class="container" data-event-workspace hidden>
+      <article class="panel-card">
+        <div class="panel-heading"><div><span class="eyebrow">Personalização</span><h2>Dados do evento</h2></div></div>
+        <form class="guest-form" id="eventConfigForm">
+          <div class="form-group"><label for="eventNameInput">Nome do evento</label><input type="text" id="eventNameInput" required /></div>
+          <div class="form-group"><label for="eventTypeInput">Tipo do evento</label><input type="text" id="eventTypeInput" required /></div>
+          <div class="form-group"><label for="eventHostInput">Nome do anfitrião</label><input type="text" id="eventHostInput" /></div>
+          <div class="form-group"><label for="eventDateIsoInput">Data do evento</label><input type="date" id="eventDateIsoInput" required /></div>
+          <div class="form-group"><label for="eventTimeInput">Horário do evento</label><input type="time" id="eventTimeInput" required /></div>
+          <div class="form-group">
+            <label for="eventLocationInput">Local (Endereço completo)</label>
+            <input type="text" id="eventLocationInput" list="address-suggestions" placeholder="Digite o nome da rua ou local..." required autocomplete="off" />
+            <datalist id="address-suggestions"></datalist>
+            <small id="locationHelpText">Digite e selecione o endereço na lista para preencher automaticamente.</small>
+          </div>
+          <div class="form-group">
+            <label for="eventIntroCategory">Categoria da Mensagem</label>
+            <select id="eventIntroCategory">
+              <option value="casamento">Casamento</option>
+              <option value="aniversario">Aniversário Adulto</option>
+              <option value="aniversario-infantil">Aniversário Infantil</option>
+              <option value="formatura">Formatura</option>
+              <option value="corporativo">Evento Corporativo</option>
+              <option value="cha-bebe">Chá de Bebê</option>
+              <option value="cha-casa">Chá de Casa Nova</option>
+              <option value="festa-junina">Festa Junina</option>
+              <option value="batizado">Batizado</option>
+            </select>
+          </div>
+          <div class="form-group"><label for="eventIntroVariation">Escolha uma sugestão</label><select id="eventIntroVariation"></select></div>
+          <div class="form-group"><label for="eventIntroInput">Mensagem do convite (editável)</label><textarea id="eventIntroInput" rows="4" required></textarea></div>
+          
+          <!-- NOVO CAMPO DE ESTILO DO TICKET -->
+          <div class="form-group" style="margin-top: 16px; padding-top: 16px; border-top: 1px dashed rgba(255,255,255,0.2);">
+            <label for="eventTicketTheme">Estilo do Ticket (QR Code)</label>
+            <select id="eventTicketTheme">
+              <option value="classic">Elegance (Casamentos/Formaturas)</option>
+              <option value="neon">Tech Neon (Aniversários/Corporativo)</option>
+              <option value="minimalist">Minimalist (Chás/Batizados)</option>
+            </select>
+            <small>Este será o design do cartão que o convidado salvará.</small>
+          </div>
 
-    async function checkAndRedirect() {
-      if (!eventId) {
-        // Se não tem evento, mostra o painel novo (limpo)
-        window.location.replace(`admin_v2.html${window.location.search}`);
-        return;
-      }
+          <button type="submit" class="btn btn-primary" style="margin-top: 16px;">Salvar dados do evento</button>
+        </form>
+      </article>
+    </section>
 
-      try {
-        const eventRef = doc(dbV1, "events", eventId);
-        const eventSnap = await getDoc(eventRef);
+    <section class="container dashboard-grid" data-event-workspace hidden style="margin-top: 24px;">
+      <article class="panel-card">
+        <div class="panel-heading"><div><span class="eyebrow">Novo convidado</span><h2>Cadastrar convite</h2></div></div>
+        <form class="guest-form" id="guestForm">
+          <button type="button" class="btn btn-secondary" id="pickContactButton" hidden style="margin-bottom: 8px; border: 1px dashed var(--color-primary); background: rgba(33,189,193,0.05);">Buscar contato da agenda</button>
+          <div class="form-group"><label for="guestNameInput">Nome do convidado</label><input type="text" id="guestNameInput" required /></div>
+          <div class="form-group"><label for="guestPhoneInput">Telefone</label><input type="tel" id="guestPhoneInput" /></div>
+          <div class="form-group"><label for="guestEmailInput">E-mail</label><input type="email" id="guestEmailInput" /></div>
+          <div class="form-group"><label for="guestCompanionsInput">Acompanhantes permitidos</label><input type="number" id="guestCompanionsInput" min="0" value="0" /></div>
+          <button type="submit" class="btn btn-primary">Criar convite</button>
+        </form>
+      </article>
 
-        if (eventSnap.exists()) {
-          window.location.replace(`v1/admin.html${window.location.search}`);
-        } else {
-          window.location.replace(`admin_v2.html${window.location.search}`);
-        }
-      } catch (error) {
-        console.warn("Erro na verificação:", error);
-        window.location.replace(`admin_v2.html${window.location.search}`);
-      }
-    }
+      <article class="panel-card panel-card-large">
+        <div class="panel-heading">
+          <div><span class="eyebrow">Lista de convidados</span><h2>Status dos convites</h2></div>
+          <div class="table-actions">
+            <button type="button" class="btn btn-secondary btn-small" id="exportAllGuestsButton">Exportar todos</button>
+            <button type="button" class="btn btn-secondary btn-small" id="exportAcceptedGuestsButton">Exportar confirmados</button>
+            <button type="button" class="btn btn-secondary btn-small" id="exportPresentGuestsButton">Exportar presentes</button>
+            <button type="button" class="btn btn-secondary btn-small" id="exportDeclinedGuestsButton">Exportar recusados</button>
+            <button type="button" class="btn btn-secondary btn-small" id="resetDemoButton">Restaurar demo</button>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="guest-table">
+            <thead><tr><th>Convidado</th><th>Contato</th><th>Status</th><th>Convite</th><th>Ações</th></tr></thead>
+            <tbody id="guestTableBody"><tr><td colspan="5">Aguardando acesso ao evento...</td></tr></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+  </main>
 
-    checkAndRedirect();
-  </script>
+  <div class="modal-overlay" id="qrModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header"><div><span class="eyebrow">Convite individual</span><h2 id="qrModalTitle">QR Code do convidado</h2></div><button type="button" class="modal-close" id="closeQrModal">×</button></div>
+      <div class="qr-modal-body">
+        <div class="qr-guest-info"><span class="guest-avatar" id="qrGuestInitial">C</span><div><strong id="qrGuestName">Convidado</strong><small id="qrGuestLink">Link</small></div></div>
+        <div class="qr-code-box" id="qrCodeBox"></div>
+        <div class="qr-actions">
+          <button type="button" class="btn btn-secondary" id="copyQrLinkButton">Copiar link</button>
+          <button type="button" class="btn btn-primary" id="downloadQrButton">Baixar QR Code</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="guestCreatedModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header"><div><span class="eyebrow">Sucesso!</span><h2>Convite Criado</h2></div><button type="button" class="modal-close" id="closeGuestCreatedModal">×</button></div>
+      <div class="qr-modal-body" style="text-align: center;">
+        <p>O convite de <strong id="createdGuestName">Convidado</strong> foi gerado com sucesso.</p>
+        <p class="small-note" id="createdGuestPhoneNote"></p>
+        <div class="hero-actions" style="margin-top: 24px; flex-direction: column;">
+          <button type="button" class="btn btn-primary" id="sendWhatsappCreatedBtn">Enviar convite pelo WhatsApp</button>
+          <button type="button" class="btn btn-secondary" id="copyCreatedLinkBtn">Copiar link do convite</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container footer-content footer-content-branded">
+      <div class="footer-brand-note"><p>© 2026 Confirmaê.</p><p>Confirmaê é um sistema desenvolvido por Vidal Design Solutions.</p></div>
+      <a href="http://www.vidaldesignsolutions.com.br" class="developer-badge" target="_blank" rel="noopener"><span>Desenvolvido por</span><img src="assets/img/vidal-design-logo.png" alt="Vidal Design Solutions" /></a>
+    </div>
+  </footer>
+
+  <script src="assets/js/theme.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script type="module" src="assets/js/admin.js"></script>
+  <script src="assets/js/pwa.js"></script>
 </body>
 </html>
