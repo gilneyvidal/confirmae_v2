@@ -1,0 +1,24 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isMaster() {
+      return request.auth != null && request.auth.token.email == 'gw.vidal@gmail.com';
+    }
+    match /events/{eventId} {
+      allow read: if true;
+      allow write: if true; // Libera para o anfitrião usar PIN
+      match /guests/{guestId} {
+        allow read: if true;
+        allow write: if true; // Libera para o anfitrião usar PIN
+      }
+    }
+    match /eventAccess/{eventId} {
+      allow read: if true;
+      allow write: if isMaster(); // Só o master libera/bloqueia
+    }
+    match /coupons/{couponCode} {
+      allow read: if true;
+      allow write: if isMaster(); // Só o master cria cupom
+    }
+  }
+}

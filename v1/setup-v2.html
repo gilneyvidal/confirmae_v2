@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setup Automático - Confirmaê v2</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #0D1014; color: #FEFEFE; display: grid; place-items: center; height: 100vh; margin: 0; }
+    .card { background: #151A20; padding: 40px; border-radius: 20px; border: 1px solid #2C343D; text-align: center; max-width: 400px; }
+    button { background: #21BDC1; color: #000; border: 0; padding: 15px 30px; font-size: 16px; font-weight: bold; border-radius: 30px; cursor: pointer; margin-top: 20px; width: 100%; transition: 0.2s; }
+    button:hover { transform: scale(1.05); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    #status { margin-top: 20px; font-size: 14px; color: #ACADB3; line-height: 1.5; }
+    .success { color: #22c55e !important; font-weight: bold; font-size: 18px !important; }
+    .error { color: #ef4444 !important; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h2>Inicialização do Banco</h2>
+  <p style="color: #ACADB3; font-size: 14px;">Este script vai criar as coleções e os dados iniciais no Firebase v2.</p>
+  <button id="startBtn">Autorizar e Configurar</button>
+  <div id="status">Aguardando autorização...</div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDqImA4Bh-ufuJnKrLu1dJ-tjOtiynJtM8",
+    authDomain: "confirmae-v2.firebaseapp.com",
+    projectId: "confirmae-v2",
+    storageBucket: "confirmae-v2.firebasestorage.app",
+    messagingSenderId: "158099483138",
+    appId: "1:158099483138:web:3105baf62554cb72c6951b"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+
+  const startBtn = document.getElementById("startBtn");
+  const statusDiv = document.getElementById("status");
+
+  startBtn.addEventListener("click", async () => {
+    startBtn.disabled = true;
+    statusDiv.textContent = "Conectando ao Google...";
+    statusDiv.className = "";
+
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      
+      if (result.user.email !== "gw.vidal@gmail.com") {
+        throw new Error("Você precisa logar com o e-mail gw.vidal@gmail.com");
+      }
+
+      statusDiv.textContent = "Criando coleções no banco...";
+
+      // Cria a coleção "coupons" com um doc vazio para forçar existência
+      await setDoc(doc(db, "coupons", "_init"), {
+        code: "_init",
+        active: false,
+        discountAmount: 0,
+        _isSystemInit: true
+      });
+
+      // Cria a coleção "eventAccess"
+      await setDoc(doc(db, "eventAccess", "_init"), {
+        id: "_init",
+        enabled: false,
+        _isSystemInit: true
+      });
+
+      // Cria a coleção "events"
+      await setDoc(doc(db, "events", "_init"), {
+        id: "_init",
+        accessEnabled: false,
+        _isSystemInit: true
+      });
+
+      // Cria o evento demo para o painel de testes
+      await setDoc(doc(db, "events", "evento-demo"), {
+        id: "evento-demo",
+        name: "Casamento Demonstração",
+        type: "Casamento",
+        date: "20 de dezembro de 2026",
+        time: "19h30",
+        location: "Espaço Jardim Imperial",
+        intro: "Você está recebendo este convite especial para celebrar um momento inesquecível com a gente.",
+        accessEnabled: true,
+        panelPin: "",
+        gatePin: "",
+        planId: "max",
+        planName: "Demonstração",
+        guestLimit: null
+      });
+
+      statusDiv.textContent = "✅ Configuração Concluída com Sucesso! Pode fechar esta aba e voltar ao painel master.";
+      statusDiv.className = "success";
+      startBtn.style.display = "none";
+
+    } catch (error) {
+      console.error(error);
+      statusDiv.textContent = "Erro: " + error.message;
+      statusDiv.className = "error";
+      startBtn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
