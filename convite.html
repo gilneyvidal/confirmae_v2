@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verificando convite...</title>
+  <style>
+    body { background: #0D1014; color: #21BDC1; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: sans-serif; }
+    .spinner { width: 40px; height: 40px; border: 4px solid rgba(33, 189, 193, 0.2); border-top-color: #21BDC1; border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="spinner"></div>
+  
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // Configuração do Firebase ANTIGO (V1)
+    const firebaseConfigV1 = {
+      apiKey: "AIzaSyAd_csKRHD2dEzyszjzCC3bTJvpHH_YUf8",
+      authDomain: "confirmae-e629a.firebaseapp.com",
+      projectId: "confirmae-e629a",
+      storageBucket: "confirmae-e629a.firebasestorage.app",
+      messagingSenderId: "372030861002",
+      appId: "1:372030861002:web:d688248aef7a5297b8ce33"
+    };
+
+    const appV1 = initializeApp(firebaseConfigV1, "appV1");
+    const dbV1 = getFirestore(appV1);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const eventId = urlParams.get("evento");
+    const guestId = urlParams.get("convidado");
+
+    async function checkAndRedirect() {
+      // Se não tem evento na URL, vai direto pro convite do v2 (ou home)
+      if (!eventId) {
+        window.location.replace("convite_v2.html" + window.location.search);
+        return;
+      }
+
+      try {
+        // Tenta buscar o evento no banco antigo
+        const eventRef = doc(dbV1, "events", eventId);
+        const eventSnap = await getDoc(eventRef);
+
+        if (eventSnap.exists()) {
+          // É um evento ANTIGO. Redireciona para a pasta /v1/
+          console.log("Evento antigo detectado. Redirecionando para v1...");
+          window.location.replace(`v1/convite.html${window.location.search}`);
+        } else {
+          // Não achou no banco antigo. É um evento NOVO.
+          console.log("Evento novo detectado. Carregando v2...");
+          window.location.replace(`convite_v2.html${window.location.search}`);
+        }
+      } catch (error) {
+        console.warn("Erro ao verificar banco antigo:", error);
+        // Se der erro de rede, joga para a v2 por segurança
+        window.location.replace(`convite_v2.html${window.location.search}`);
+      }
+    }
+
+    checkAndRedirect();
+  </script>
+</body>
+</html>
